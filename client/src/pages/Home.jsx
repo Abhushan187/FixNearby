@@ -14,41 +14,7 @@ const Home = () => {
               <span className="block">Find Reliable Workers</span>
               <span className="block text-blue-600">In Your Neighborhood</span>
             </h1>
-<p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
-            </p>
-            {/* New Search Section */}
-            <div className="mt-8 max-w-2xl mx-auto flex gap-4">
-              <input
-                type="text"
-                placeholder="Search services or location (e.g., plumber near me)..."
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <Link
-                to="/services"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 shadow-md hover:shadow-lg"
-              >
-                Search
-              </Link>
-            </div>
-            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8"> 
-              <div className="rounded-md shadow">
-                <Link to="/services" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10 transition duration-150 ease-in-out">
-                  Browse Services
-                </Link>
-              </div>
-              <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                <Link to="/register" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition duration-150 ease-in-out">
-                  Join as a Worker
-                </Link>
-              </div>
-
-            <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-lg md:text-xl">
-              FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
-            </p>
-
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              
               <Link
                 to="/services"
                 className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
@@ -62,7 +28,6 @@ const Home = () => {
               >
                 Join as a Worker
               </Link>
-
             </div>
           </div>
         </div>
@@ -144,39 +109,29 @@ const Home = () => {
       {/* Popular Categories */}
       <div className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Popular Categories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-{[
-  { name: 'Electrician', icon: '⚡' },
-  { name: 'Plumber', icon: '🚿' },
-  { name: 'Carpenter', icon: '🔨' },
-  { name: 'Cleaning', icon: '🧹' },
-  { name: 'Painting', icon: '🎨' },
-  { name: 'AC Repair', icon: '❄️' },
-  { name: 'Pest Control', icon: '🐛' },
-  { name: 'Moving', icon: '🚚' }
-].map(({ name, icon }, idx) => (
-  <Link key={idx} to="/services" className="group bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 hover:scale-105">
-    <div className="text-3xl mb-3">{icon}</div>
-    <span className="font-medium text-lg">{name}</span>
-  </Link>
-))}
-          
           <h2 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">
             Popular Categories
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {['Electrician', 'Plumber', 'Carpenter', 'Cleaning', 'Painting', 'AC Repair', 'Pest Control', 'Moving'].map((category, idx) => (
-              
+            {[
+              { name: 'Electrician', icon: '⚡' },
+              { name: 'Plumber', icon: '🚿' },
+              { name: 'Carpenter', icon: '🔨' },
+              { name: 'Cleaning', icon: '🧹' },
+              { name: 'Painting', icon: '🎨' },
+              { name: 'AC Repair', icon: '❄️' },
+              { name: 'Pest Control', icon: '🐛' },
+              { name: 'Moving', icon: '🚚' }
+            ].map(({ name, icon }, idx) => (
               <Link
                 key={idx}
                 to="/services"
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition"
+                className="group bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
               >
-                <span className="font-medium">{category}</span>
+                <div className="text-3xl mb-3">{icon}</div>
+                <span className="font-medium text-lg">{name}</span>
               </Link>
-
             ))}
           </div>
         </div>
