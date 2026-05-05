@@ -153,6 +153,17 @@ const workerIconMap = {
   "Pest Control": IconBug,
 };
 
+const CATEGORIES = [
+  'Electrician', 'Plumber', 'Carpenter', 'Cleaning',
+  'Painting', 'AC Repair', 'Pest Control', 'Moving',
+];
+
+const HOW_IT_WORKS = [
+  { step: "1", title: "Search",  desc: "Find nearby professionals based on skills, ratings, and location.", color: "blue" },
+  { step: "2", title: "Book",    desc: "Choose a time slot and confirm your booking instantly.",            color: "green" },
+  { step: "3", title: "Relax",   desc: "Sit back while the expert completes your task efficiently.",       color: "yellow" },
+];
+
 const Home = () => {
   const { coords, loading: geoLoading, error: geoError } = useLocation();
 
@@ -163,7 +174,10 @@ const Home = () => {
       .map((w) => {
         const workerLat = coords.latitude + w.mockOffset.lat;
         const workerLon = coords.longitude + w.mockOffset.lon;
-        return { ...w, distanceKm: getDistanceKm(coords.latitude, coords.longitude, workerLat, workerLon) };
+        return {
+          ...w,
+          distanceKm: getDistanceKm(coords.latitude, coords.longitude, workerLat, workerLon),
+        };
       })
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, 3);

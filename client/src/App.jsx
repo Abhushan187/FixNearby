@@ -10,6 +10,9 @@ import Services from './pages/Services';
 import WorkerProfile from './pages/WorkerProfile';
 import Profile from './pages/Profile';
 import Bookings from './pages/Bookings';
+import HelpCenter from './pages/HelpCenter';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function AppShell() {
   const location = useLocation();
