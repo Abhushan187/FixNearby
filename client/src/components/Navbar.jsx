@@ -1,6 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,8 +19,8 @@ const Navbar = () => {
               <Link to="/" className="text-xl font-bold text-blue-600">FixNearby</Link>
             </div>
           </div>
+
           <div className="hidden md:flex items-center space-x-6">
-            {/* TODO: Add authentication logic to toggle links */}
             <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Home</Link>
             <Link to="/services" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Services</Link>
             <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Login</Link>
