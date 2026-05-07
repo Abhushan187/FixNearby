@@ -64,6 +64,10 @@ const Footer = () => {
               <FaGithub />
             </a>
           </div>
+          <div className="mt-4 text-sm text-gray-400 space-y-1">
+            <div className="font-semibold text-gray-200">Trust-first marketplace</div>
+            <div>Vetted pros • Secure booking • Clear pricing</div>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -76,6 +80,7 @@ const Footer = () => {
             <li><Link to="/services" className={linkClass("/services")}>Services</Link></li>
             <li><Link to="/bookings" className={linkClass("/bookings")}>Bookings</Link></li>
             <li><Link to="/about" className={linkClass("/about")}>About</Link></li>
+            <li><Link to="/register" className={linkClass("/register")}>Join as a Pro</Link></li>
           </ul>
         </div>
 
