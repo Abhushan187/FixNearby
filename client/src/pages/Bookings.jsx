@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Bookings = () => {
@@ -12,10 +12,18 @@ const Bookings = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const statusOptions = ["All", "Pending", "Completed", "Cancelled"];
+  const statusOptions = [
+    "All",
+    "Pending",
+    "Completed",
+    "Cancelled",
+  ];
+
+  // ---------------- LOAD BOOKINGS ----------------
 
   useEffect(() => {
     setLoading(true);
+
     try {
       const saved = localStorage.getItem("bookings");
 
@@ -23,38 +31,110 @@ const Bookings = () => {
         setBookings(JSON.parse(saved));
       } else {
         const demo = [
-          { id: "BK-101", worker: "Jane Smith", service: "Plumbing", date: "2023-10-25", status: "Pending" },
-          { id: "BK-102", worker: "John Doe", service: "Electrical", date: "2023-11-05", status: "Pending" },
-          { id: "BK-103", worker: "Mike Johnson", service: "Carpentry", date: "2023-11-10", status: "Completed" },
+          {
+            id: "BK-101",
+            worker: "Jane Smith",
+            service: "Plumbing",
+            date: "2026-05-12",
+            status: "Pending",
+            price: 80,
+            arrivalTime: "30 mins",
+            address: "221B Main Street",
+            payment: "Cash",
+            workerImage:
+              "https://i.pravatar.cc/150?img=32",
+            verified: true,
+            instantBooking: true,
+          },
+
+          {
+            id: "BK-102",
+            worker: "John Doe",
+            service: "Electrical",
+            date: "2026-05-18",
+            status: "Completed",
+            price: 120,
+            arrivalTime: "1 hour",
+            address: "742 Evergreen Terrace",
+            payment: "UPI",
+            workerImage:
+              "https://i.pravatar.cc/150?img=15",
+            verified: true,
+            instantBooking: true,
+          },
+
+          {
+            id: "BK-103",
+            worker: "Mike Johnson",
+            service: "Carpentry",
+            date: "2026-05-22",
+            status: "Cancelled",
+            price: 65,
+            arrivalTime: "45 mins",
+            address: "Sunset Avenue",
+            payment: "Card",
+            workerImage:
+              "https://i.pravatar.cc/150?img=11",
+            verified: false,
+            instantBooking: false,
+          },
         ];
+
         setBookings(demo);
-        localStorage.setItem("bookings", JSON.stringify(demo));
+
+        localStorage.setItem(
+          "bookings",
+          JSON.stringify(demo)
+        );
       }
     } catch (e) {
       setError("Failed to load bookings");
     }
+
     setLoading(false);
   }, []);
 
+  // ---------------- SAVE BOOKINGS ----------------
+
   useEffect(() => {
-    localStorage.setItem("bookings", JSON.stringify(bookings));
+    localStorage.setItem(
+      "bookings",
+      JSON.stringify(bookings)
+    );
   }, [bookings]);
+
+  // ---------------- CANCEL BOOKING ----------------
 
   const handleCancel = (id) => {
     setBookings((prev) =>
       prev.map((b) =>
-        b.id === id ? { ...b, status: "Cancelled" } : b
+        b.id === id
+          ? {
+              ...b,
+              status: "Cancelled",
+            }
+          : b
       )
     );
   };
 
+  // ---------------- REVIEW ----------------
+
   const handleReviewSubmit = (id) => {
-    if (!rating) return alert("Please select rating");
+    if (!rating) {
+      return alert("Please select rating");
+    }
 
     setBookings((prev) =>
       prev.map((b) =>
         b.id === id
-          ? { ...b, review: { rating, comment } }
+          ? {
+              ...b,
+              review: {
+                rating,
+                comment,
+              },
+            }
           : b
       )
     );
@@ -64,199 +144,434 @@ const Bookings = () => {
     setComment("");
   };
 
-  const filtered = bookings.filter((b) => {
-    const matchSearch =
-      b.worker.toLowerCase().includes(search.toLowerCase()) ||
-      b.service.toLowerCase().includes(search.toLowerCase());
+  // ---------------- FILTERED ----------------
 
-    const matchStatus =
-      statusFilter === "All" || b.status === statusFilter;
+  const filtered = useMemo(() => {
+    return bookings.filter((b) => {
+      const matchSearch =
+        b.worker
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        b.service
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-    return matchSearch && matchStatus;
-  });
+      const matchStatus =
+        statusFilter === "All" ||
+        b.status === statusFilter;
+
+      return matchSearch && matchStatus;
+    });
+  }, [bookings, search, statusFilter]);
+
+  // ---------------- STATUS STYLE ----------------
 
   const statusStyle = (status) => {
     switch (status) {
       case "Completed":
-        return "bg-emerald-100 text-emerald-800";
+        return "bg-emerald-100 text-emerald-700";
+
       case "Pending":
-        return "bg-amber-100 text-amber-800";
+        return "bg-amber-100 text-amber-700";
+
       case "Cancelled":
-        return "bg-rose-100 text-rose-800";
+        return "bg-rose-100 text-rose-700";
+
       default:
         return "bg-slate-100 text-slate-700";
     }
   };
 
+  // ---------------- SUMMARY ----------------
+
+  const totalBookings = bookings.length;
+
+  const completedBookings = bookings.filter(
+    (b) => b.status === "Completed"
+  ).length;
+
+  const pendingBookings = bookings.filter(
+    (b) => b.status === "Pending"
+  ).length;
+
+  // ---------------- UI ----------------
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold text-slate-900">
-          My Bookings
-        </h1>
-        <p className="text-slate-600 mt-2">
-          Track, manage, and review your service bookings
-        </p>
-      </div>
+      {/* HEADER */}
 
-      {/* Search + Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
 
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search worker or service..."
-          className="w-full md:w-1/2 px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        />
+        <div>
 
-        <div className="flex flex-wrap gap-2">
-          {statusOptions.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition ${
-                statusFilter === s
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+          <h1 className="text-4xl font-extrabold text-slate-900">
+            My Bookings
+          </h1>
+
+          <p className="text-slate-600 mt-2">
+            Track, manage and review all your service bookings
+          </p>
+
         </div>
+
+        <Link
+          to="/services"
+          className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-medium hover:bg-blue-700 transition w-fit"
+        >
+          + Book New Service
+        </Link>
+
       </div>
 
-      {/* States */}
+      {/* SUMMARY CARDS */}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+
+          <p className="text-slate-500 text-sm">
+            Total Bookings
+          </p>
+
+          <h3 className="text-3xl font-bold text-slate-900 mt-2">
+            {totalBookings}
+          </h3>
+
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+
+          <p className="text-slate-500 text-sm">
+            Pending Services
+          </p>
+
+          <h3 className="text-3xl font-bold text-amber-600 mt-2">
+            {pendingBookings}
+          </h3>
+
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+
+          <p className="text-slate-500 text-sm">
+            Completed Services
+          </p>
+
+          <h3 className="text-3xl font-bold text-emerald-600 mt-2">
+            {completedBookings}
+          </h3>
+
+        </div>
+
+      </div>
+
+      {/* SEARCH + FILTER */}
+
+      <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm mb-8">
+
+        <div className="flex flex-col lg:flex-row gap-4">
+
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search worker or service..."
+            className="flex-1 px-5 py-3 rounded-2xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          />
+
+          <div className="flex flex-wrap gap-2">
+
+            {statusOptions.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
+                  statusFilter === s
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* STATES */}
+
       {loading && (
-        <p className="text-slate-500">Loading bookings...</p>
+        <div className="text-center py-16 text-slate-500">
+          Loading bookings...
+        </div>
       )}
 
       {error && (
-        <p className="text-rose-600">{error}</p>
-      )}
-
-      {/* Empty State */}
-      {!loading && filtered.length === 0 && (
-        <div className="text-center py-16 bg-slate-50 border border-slate-200 rounded-2xl">
-          <h3 className="text-xl font-bold text-slate-900">
-            No bookings found
-          </h3>
-          <p className="text-slate-600 mt-2">
-            Try adjusting filters or book a new service
-          </p>
-          <Link
-            to="/services"
-            className="inline-block mt-5 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700"
-          >
-            Browse Services
-          </Link>
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl p-4 mb-6">
+          {error}
         </div>
       )}
 
-      {/* Booking List */}
-      <div className="space-y-4">
+      {/* EMPTY */}
+
+      {!loading && filtered.length === 0 && (
+        <div className="text-center py-20 bg-slate-50 border border-slate-200 rounded-3xl">
+
+          <div className="text-6xl mb-4">
+            📦
+          </div>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            No bookings found
+          </h3>
+
+          <p className="text-slate-500 mt-2">
+            Try adjusting filters or book a new service
+          </p>
+
+          <Link
+            to="/services"
+            className="inline-block mt-6 bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium hover:bg-blue-700 transition"
+          >
+            Browse Services
+          </Link>
+
+        </div>
+      )}
+
+      {/* BOOKING LIST */}
+
+      <div className="space-y-6">
 
         {filtered.map((b) => (
           <div
             key={b.id}
-            className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+            className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl transition duration-300"
           >
 
-            {/* Top */}
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800">
-                  {b.service}
-                </h3>
-                <p className="text-slate-600">
-                  {b.worker}
-                </p>
+            {/* TOP */}
+
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+              <div className="flex items-start gap-4">
+
+                <img
+                  src={b.workerImage}
+                  alt={b.worker}
+                  className="w-16 h-16 rounded-2xl object-cover"
+                />
+
+                <div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+
+                    <h3 className="text-xl font-bold text-slate-900">
+                      {b.service}
+                    </h3>
+
+                    {b.verified && (
+                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+                        Verified
+                      </span>
+                    )}
+
+                  </div>
+
+                  <p className="text-slate-600 mt-1">
+                    Worker: {b.worker}
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
+
+                    <span>
+                      📅 {b.date}
+                    </span>
+
+                    <span>
+                      📍 {b.address}
+                    </span>
+
+                    <span>
+                      💳 {b.payment}
+                    </span>
+
+                  </div>
+
+                </div>
+
               </div>
 
-              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusStyle(b.status)}`}>
-                {b.status}
-              </span>
+              <div className="flex flex-col items-start lg:items-end gap-3">
+
+                <span
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold ${statusStyle(
+                    b.status
+                  )}`}
+                >
+                  {b.status}
+                </span>
+
+                <div className="text-right">
+
+                  <p className="text-slate-500 text-sm">
+                    Service Price
+                  </p>
+
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    ${b.price}
+                  </h3>
+
+                </div>
+
+              </div>
+
             </div>
 
-            {/* Meta */}
-            <div className="mt-3 flex justify-between text-sm text-slate-500">
-              <span>ID: {b.id}</span>
-              <span>{b.date}</span>
+            {/* OUTCOME SECTION */}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+              <div className="bg-slate-50 rounded-2xl p-4">
+
+                <p className="text-xs text-slate-500">
+                  Arrival Time
+                </p>
+
+                <h4 className="font-bold text-slate-900 mt-1">
+                  ⏱ {b.arrivalTime}
+                </h4>
+
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4">
+
+                <p className="text-xs text-slate-500">
+                  Booking Type
+                </p>
+
+                <h4 className="font-bold mt-1 text-slate-900">
+                  {b.instantBooking
+                    ? "🚀 Instant Confirmation"
+                    : "📝 Approval Required"}
+                </h4>
+
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4">
+
+                <p className="text-xs text-slate-500">
+                  Booking ID
+                </p>
+
+                <h4 className="font-bold text-slate-900 mt-1">
+                  #{b.id}
+                </h4>
+
+              </div>
+
             </div>
 
-            {/* Actions */}
-            <div className="mt-4 flex gap-4 text-sm">
+            {/* ACTIONS */}
+
+            <div className="mt-6 flex flex-wrap gap-3">
 
               {b.status === "Pending" && (
-                <button
-                  onClick={() => handleCancel(b.id)}
-                  className="text-rose-600 hover:text-rose-700 font-medium"
-                >
-                  Cancel
-                </button>
+                <>
+                  <button className="px-5 py-2.5 border border-slate-300 rounded-2xl font-medium hover:border-blue-500 hover:text-blue-600 transition">
+                    Contact Worker
+                  </button>
+
+                  <button
+                    onClick={() => handleCancel(b.id)}
+                    className="px-5 py-2.5 bg-rose-50 text-rose-600 rounded-2xl font-medium hover:bg-rose-100 transition"
+                  >
+                    Cancel Booking
+                  </button>
+                </>
               )}
 
               {b.status === "Completed" && !b.review && (
                 <button
                   onClick={() => setActiveReview(b.id)}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-medium hover:bg-blue-700 transition"
                 >
                   Leave Review
                 </button>
               )}
 
               {b.review && (
-                <span className="text-emerald-600 font-medium">
-                  ⭐ {b.review.rating} Reviewed
-                </span>
+                <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-2xl font-medium">
+                  ⭐ {b.review.rating} Review Submitted
+                </div>
               )}
+
             </div>
 
-            {/* Review Box */}
+            {/* REVIEW BOX */}
+
             {activeReview === b.id && (
-              <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div className="mt-6 bg-slate-50 border border-slate-200 rounded-3xl p-5">
 
-                <p className="font-semibold text-slate-800 mb-2">
-                  Rate your experience
-                </p>
+                <h3 className="text-lg font-bold text-slate-900 mb-4">
+                  Share Your Experience
+                </h3>
 
-                <div className="flex gap-1 mb-3">
-                  {[1,2,3,4,5].map((s) => (
+                {/* STARS */}
+
+                <div className="flex gap-2 mb-4">
+
+                  {[1, 2, 3, 4, 5].map((s) => (
                     <button
                       key={s}
                       onClick={() => setRating(s)}
-                      className={`text-xl ${
-                        rating >= s ? "text-yellow-400" : "text-slate-300"
+                      className={`text-3xl transition ${
+                        rating >= s
+                          ? "text-yellow-400 scale-110"
+                          : "text-slate-300"
                       }`}
                     >
                       ★
                     </button>
                   ))}
+
                 </div>
+
+                {/* COMMENT */}
 
                 <textarea
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Write feedback..."
-                  className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+                  onChange={(e) =>
+                    setComment(e.target.value)
+                  }
+                  placeholder="Write your feedback..."
+                  className="w-full p-4 border border-slate-300 rounded-2xl text-sm min-h-[120px] focus:ring-2 focus:ring-blue-500 outline-none"
                 />
 
-                <div className="flex gap-3 mt-3">
+                {/* BUTTONS */}
+
+                <div className="flex gap-3 mt-4">
+
                   <button
-                    onClick={() => handleReviewSubmit(b.id)}
-                    className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm"
+                    onClick={() =>
+                      handleReviewSubmit(b.id)
+                    }
+                    className="bg-blue-600 text-white px-5 py-2.5 rounded-2xl font-medium hover:bg-blue-700 transition"
                   >
-                    Submit
+                    Submit Review
                   </button>
 
                   <button
-                    onClick={() => setActiveReview(null)}
-                    className="text-slate-500 text-sm"
+                    onClick={() =>
+                      setActiveReview(null)
+                    }
+                    className="px-5 py-2.5 border border-slate-300 rounded-2xl text-slate-600 hover:bg-slate-100 transition"
                   >
                     Cancel
                   </button>
+
                 </div>
 
               </div>
@@ -266,6 +581,7 @@ const Bookings = () => {
         ))}
 
       </div>
+
     </div>
   );
 };

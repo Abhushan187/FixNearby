@@ -2,7 +2,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 
-// Helpers
+// ---------------- HELPERS ----------------
+
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
 
@@ -24,6 +25,8 @@ const formatDistance = (km) =>
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // ---------------- STATES ----------------
+
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || ""
   );
@@ -39,6 +42,8 @@ const Services = () => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [coords, setCoords] = useState(null);
+
+  // ---------------- CATEGORIES ----------------
 
   const categories = [
     "All",
@@ -67,7 +72,8 @@ const Services = () => {
     "Pest Control": "🐜",
   };
 
-  /* ---------------- LOCATION ---------------- */
+  // ---------------- LOCATION ----------------
+
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition((pos) => {
       setCoords({
@@ -77,7 +83,8 @@ const Services = () => {
     });
   }, []);
 
-  /* ---------------- DATA ---------------- */
+  // ---------------- MOCK DATA ----------------
+
   useEffect(() => {
     setLoading(true);
 
@@ -89,67 +96,115 @@ const Services = () => {
           profession: "Electrician",
           rating: 4.8,
           price: 40,
+          experience: 6,
+          completedJobs: 124,
+          available: true,
+          responseTime: "10 mins",
+          verified: true,
+          instantBooking: true,
+          arrivalTime: "30 mins",
+          serviceWarranty: "7 Days",
+          successRate: 98,
         },
+
         {
           id: 2,
           name: "Jane Smith",
           profession: "Plumber",
           rating: 4.9,
           price: 50,
+          experience: 8,
+          completedJobs: 201,
+          available: false,
+          responseTime: "20 mins",
+          verified: true,
+          instantBooking: false,
+          arrivalTime: "1 hour",
+          serviceWarranty: "14 Days",
+          successRate: 96,
         },
+
         {
           id: 3,
           name: "Mike Johnson",
           profession: "Carpenter",
           rating: 4.5,
           price: 35,
+          experience: 5,
+          completedJobs: 98,
+          available: true,
+          responseTime: "15 mins",
+          verified: false,
+          instantBooking: true,
+          arrivalTime: "45 mins",
+          serviceWarranty: "5 Days",
+          successRate: 94,
         },
+
         {
           id: 4,
           name: "Ravi Kumar",
           profession: "Painter",
           rating: 4.6,
           price: 30,
+          experience: 4,
+          completedJobs: 76,
+          available: true,
+          responseTime: "12 mins",
+          verified: true,
+          instantBooking: true,
+          arrivalTime: "25 mins",
+          serviceWarranty: "10 Days",
+          successRate: 97,
         },
+
         {
           id: 5,
           name: "Amit Sharma",
           profession: "AC Technician",
           rating: 4.7,
           price: 45,
+          experience: 7,
+          completedJobs: 180,
+          available: false,
+          responseTime: "25 mins",
+          verified: true,
+          instantBooking: false,
+          arrivalTime: "2 hours",
+          serviceWarranty: "15 Days",
+          successRate: 95,
         },
+
         {
           id: 6,
           name: "Rahul Das",
           profession: "Cleaner",
           rating: 4.4,
           price: 25,
-        },
-        {
-          id: 7,
-          name: "Suresh Patel",
-          profession: "Mechanic",
-          rating: 4.8,
-          price: 55,
-        },
-        {
-          id: 8,
-          name: "Arjun Singh",
-          profession: "Gardener",
-          rating: 4.3,
-          price: 20,
+          experience: 3,
+          completedJobs: 63,
+          available: true,
+          responseTime: "8 mins",
+          verified: false,
+          instantBooking: true,
+          arrivalTime: "20 mins",
+          serviceWarranty: "3 Days",
+          successRate: 91,
         },
       ]);
 
       setLoading(false);
-    }, 600);
+    }, 700);
   }, []);
 
-  /* ---------------- URL SYNC ---------------- */
+  // ---------------- URL SYNC ----------------
+
   useEffect(() => {
     const params = {};
 
-    if (searchQuery) params.search = searchQuery;
+    if (searchQuery) {
+      params.search = searchQuery;
+    }
 
     if (categoryFilter !== "All") {
       params.category = categoryFilter;
@@ -160,9 +215,15 @@ const Services = () => {
     }
 
     setSearchParams(params);
-  }, [searchQuery, categoryFilter, sortBy, setSearchParams]);
+  }, [
+    searchQuery,
+    categoryFilter,
+    sortBy,
+    setSearchParams,
+  ]);
 
-  /* ---------------- PROCESS WORKERS ---------------- */
+  // ---------------- PROCESS WORKERS ----------------
+
   const processedWorkers = useMemo(() => {
     let result = workers.map((w) => {
       let distance = null;
@@ -220,123 +281,341 @@ const Services = () => {
     coords,
   ]);
 
-  /* ---------------- UI ---------------- */
+  // ---------------- UI ----------------
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
       {/* HEADER */}
-      <div className="text-center mb-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-          Find Skilled Professionals
+
+      <div className="text-center mb-12">
+
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
+          Find Trusted Skilled Professionals
         </h1>
 
-        <p className="text-slate-600 mt-3 text-sm sm:text-base">
-          Search, compare and book trusted workers near you
+        <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
+          Compare pricing, ratings, experience and availability
+          before booking trusted local professionals.
         </p>
-      </div>
-
-      {/* SEARCH */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-8">
-
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search electricians, plumbers..."
-          className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="distance">Nearest</option>
-          <option value="rating">Top Rated</option>
-          <option value="price">Lowest Price</option>
-        </select>
 
       </div>
 
-      {/* CATEGORIES */}
-      <div className="flex flex-wrap gap-3 mb-10">
+      {/* SEARCH + FILTER */}
 
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategoryFilter(cat)}
-            className={`px-4 py-2 rounded-full text-sm border transition-all duration-200 ${
-              categoryFilter === cat
-                ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                : "bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:text-blue-600"
-            }`}
+      <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm mb-10">
+
+        <div className="flex flex-col lg:flex-row gap-4">
+
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search electricians, plumbers..."
+            className="flex-1 px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {iconMap[cat] && (
-              <span className="mr-1">
-                {iconMap[cat]}
-              </span>
-            )}
+            <option value="distance">Nearest</option>
+            <option value="rating">Top Rated</option>
+            <option value="price">Lowest Price</option>
+          </select>
 
-            {cat}
-          </button>
-        ))}
+        </div>
+
+        {/* CATEGORY BUTTONS */}
+
+        <div className="flex flex-wrap gap-3 mt-6">
+
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-4 py-2 rounded-full text-sm border transition-all duration-300 ${
+                categoryFilter === cat
+                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                  : "bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {iconMap[cat] && (
+                <span className="mr-1">
+                  {iconMap[cat]}
+                </span>
+              )}
+
+              {cat}
+            </button>
+          ))}
+
+        </div>
 
       </div>
+
+      {/* RESULTS */}
+
+      {!loading && (
+        <div className="flex items-center justify-between mb-6">
+
+          <p className="text-slate-600">
+            Showing{" "}
+            <span className="font-semibold text-slate-900">
+              {processedWorkers.length}
+            </span>{" "}
+            professionals
+          </p>
+
+        </div>
+      )}
 
       {/* CONTENT */}
+
       {loading ? (
         <LoadingSpinner />
       ) : processedWorkers.length === 0 ? (
-        <div className="text-center py-20 text-slate-500 text-lg">
-          No workers found
+        <div className="text-center py-20">
+
+          <div className="text-6xl mb-4">
+            🔍
+          </div>
+
+          <h3 className="text-2xl font-bold text-slate-900">
+            No workers found
+          </h3>
+
+          <p className="text-slate-500 mt-2">
+            Try another search or category
+          </p>
+
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 w-full">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-7">
 
           {processedWorkers.map((w) => (
             <div
               key={w.id}
-              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+              className="group bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
             >
 
-              {/* ICON */}
-              <div className="text-4xl mb-4">
-                {iconMap[w.profession]}
-              </div>
+              {/* TOP */}
 
-              {/* NAME */}
-              <h3 className="text-xl font-bold text-slate-900">
-                {w.name}
-              </h3>
+              <div className="flex items-start justify-between">
 
-              {/* PROFESSION */}
-              <p className="text-blue-600 font-medium mt-1">
-                {w.profession}
-              </p>
+                <div>
 
-              {/* INFO */}
-              <div className="flex items-center justify-between mt-4 text-sm text-slate-600">
-                <span>⭐ {w.rating}</span>
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
+                    {iconMap[w.profession]}
+                  </div>
 
-                <span className="font-semibold text-slate-900">
-                  ${w.price}/hr
-                </span>
-              </div>
+                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 flex-wrap">
 
-              {/* DISTANCE */}
-              {w.distanceKm && (
-                <p className="text-xs text-emerald-600 mt-3">
-                  📍 {formatDistance(w.distanceKm)} away
-                </p>
-              )}
+                    {w.name}
 
-              {/* BUTTON */}
-              <div className="mt-auto pt-5">
-                <Link
-                  to={`/worker/${w.id}`}
-                  className="block w-full text-center bg-slate-900 text-white py-3 rounded-xl hover:bg-blue-600 transition duration-300 font-medium"
+                    {w.verified && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        Verified
+                      </span>
+                    )}
+
+                  </h3>
+
+                  <p className="text-blue-600 font-medium mt-1">
+                    {w.profession}
+                  </p>
+
+                </div>
+
+                <div
+                  className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                    w.available
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-600"
+                  }`}
                 >
-                  View & Book
-                </Link>
+                  {w.available ? "Available" : "Busy"}
+                </div>
+
+              </div>
+
+              {/* STATS */}
+
+              <div className="grid grid-cols-2 gap-4 mt-6">
+
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 mb-1">
+                    Rating
+                  </p>
+
+                  <p className="font-bold text-slate-900">
+                    ⭐ {w.rating}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 mb-1">
+                    Price
+                  </p>
+
+                  <p className="font-bold text-slate-900">
+                    ${w.price}/hr
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 mb-1">
+                    Experience
+                  </p>
+
+                  <p className="font-bold text-slate-900">
+                    {w.experience} Years
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 mb-1">
+                    Jobs Done
+                  </p>
+
+                  <p className="font-bold text-slate-900">
+                    {w.completedJobs}+
+                  </p>
+                </div>
+
+              </div>
+
+              {/* EXTRA INFO */}
+
+              <div className="mt-5 space-y-3 text-sm">
+
+                <div className="flex items-center justify-between text-slate-600">
+                  <span>
+                    ⚡ Response Time
+                  </span>
+
+                  <span className="font-medium text-slate-900">
+                    {w.responseTime}
+                  </span>
+                </div>
+
+                {w.distanceKm && (
+                  <div className="flex items-center justify-between text-slate-600">
+
+                    <span>
+                      📍 Distance
+                    </span>
+
+                    <span className="font-medium text-emerald-600">
+                      {formatDistance(w.distanceKm)}
+                    </span>
+
+                  </div>
+                )}
+
+              </div>
+
+              {/* ACTION OUTCOME SECTION */}
+
+              <div className="mt-6 border-t border-slate-200 pt-5">
+
+                {/* BOOKING INFO */}
+
+                <div className="space-y-3 mb-5">
+
+                  <div className="flex items-center justify-between text-sm">
+
+                    <span className="text-slate-500">
+                      🚀 Booking Type
+                    </span>
+
+                    <span
+                      className={`font-semibold ${
+                        w.instantBooking
+                          ? "text-emerald-600"
+                          : "text-orange-500"
+                      }`}
+                    >
+                      {w.instantBooking
+                        ? "Instant Confirmation"
+                        : "Approval Required"}
+                    </span>
+
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+
+                    <span className="text-slate-500">
+                      ⏱ Arrival Time
+                    </span>
+
+                    <span className="font-semibold text-slate-900">
+                      {w.arrivalTime}
+                    </span>
+
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+
+                    <span className="text-slate-500">
+                      🛡 Service Warranty
+                    </span>
+
+                    <span className="font-semibold text-slate-900">
+                      {w.serviceWarranty}
+                    </span>
+
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+
+                    <span className="text-slate-500">
+                      📈 Success Rate
+                    </span>
+
+                    <span className="font-semibold text-emerald-600">
+                      {w.successRate}%
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* CONFIDENCE BOX */}
+
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">
+
+                  <p className="text-sm text-slate-700 leading-relaxed">
+
+                    {w.instantBooking
+                      ? `Book now and get instant confirmation with expected arrival within ${w.arrivalTime}.`
+                      : `Worker will review your request before confirming the booking.`}
+
+                  </p>
+
+                </div>
+
+                {/* BUTTONS */}
+
+                <div className="grid grid-cols-2 gap-3">
+
+                  <button className="border border-slate-300 rounded-2xl py-3 font-medium hover:border-blue-500 hover:text-blue-600 transition">
+
+                    Chat Now
+
+                  </button>
+
+                  <Link
+                    to={`/worker/${w.id}`}
+                    className="bg-slate-900 text-white text-center py-3 rounded-2xl font-medium hover:bg-blue-600 transition"
+                  >
+                    {w.instantBooking
+                      ? "Book Instantly"
+                      : "Request Booking"}
+                  </Link>
+
+                </div>
+
               </div>
 
             </div>
