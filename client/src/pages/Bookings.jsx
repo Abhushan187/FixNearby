@@ -15,22 +15,35 @@ const Bookings = () => {
 
   const statusOptions = ["All", "Pending", "Completed", "Cancelled"];
 
+  // Load bookings from localStorage
   useEffect(() => {
-    setTimeout(() => {
-      try {
-        const data = [
-          { id: 'BK-101', worker: 'Jane Smith', service: 'Plumbing', date: '2023-10-25', status: 'Completed' },
+    setLoading(true);
+    try {
+      const savedBookings = localStorage.getItem('bookings');
+      if (savedBookings && JSON.parse(savedBookings).length > 0) {
+        setBookings(JSON.parse(savedBookings));
+      } else {
+        // Default mock data if no bookings exist
+        const defaultData = [
+          { id: 'BK-101', worker: 'Jane Smith', service: 'Plumbing', date: '2023-10-25', status: 'Pending' },
           { id: 'BK-102', worker: 'John Doe', service: 'Electrical', date: '2023-11-05', status: 'Pending' },
-          { id: 'BK-103', worker: 'Mike Johnson', service: 'Carpentry', date: '2023-11-10', status: 'Cancelled' },
+          { id: 'BK-103', worker: 'Mike Johnson', service: 'Carpentry', date: '2023-11-10', status: 'Completed' },
         ];
-        setBookings(data);
-        setLoading(false);
-      } catch {
-        setError("Failed to fetch bookings");
-        setLoading(false);
+        setBookings(defaultData);
+        localStorage.setItem('bookings', JSON.stringify(defaultData));
       }
-    }, 1000);
+    } catch {
+      setError("Failed to fetch bookings");
+    }
+    setLoading(false);
   }, []);
+
+  // Save bookings to localStorage whenever they change
+  useEffect(() => {
+    if (bookings.length > 0) {
+      localStorage.setItem('bookings', JSON.stringify(bookings));
+    }
+  }, [bookings]);
 
   const handleCancel = (id) => {
     const updated = bookings.map((b) =>
