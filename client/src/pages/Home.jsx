@@ -1,12 +1,9 @@
-import { Link, useSearchParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { Link, useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
-import { useLocation } from '../context/LocationContext';
-import { getDistanceKm, formatDistance } from '../utils/distance';
+import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { useLocation } from "../context/LocationContext";
+import { formatDistance, getDistanceKm } from "../utils/distance";
 
-const Icon = ({ children, className = '' }) => (
+const Icon = ({ children, className = "" }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
@@ -21,14 +18,14 @@ const Icon = ({ children, className = '' }) => (
   </svg>
 );
 
-const IconSearch = ({ className = '' }) => (
+const IconSearch = ({ className = "" }) => (
   <Icon className={className}>
     <circle cx="11" cy="11" r="7" />
     <path d="M20 20l-3.5-3.5" />
   </Icon>
 );
 
-const IconCalendar = ({ className = '' }) => (
+const IconCalendar = ({ className = "" }) => (
   <Icon className={className}>
     <rect x="4" y="5.5" width="16" height="15" rx="2.5" />
     <path d="M8 3.5v4" />
@@ -37,20 +34,20 @@ const IconCalendar = ({ className = '' }) => (
   </Icon>
 );
 
-const IconCheckCircle = ({ className = '' }) => (
+const IconCheckCircle = ({ className = "" }) => (
   <Icon className={className}>
     <circle cx="12" cy="12" r="9" />
     <path d="M8.5 12.5l2.2 2.2L16 9.5" />
   </Icon>
 );
 
-const IconBolt = ({ className = '' }) => (
+const IconBolt = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M13 2L4 14h7l-1 8 10-14h-7z" />
   </Icon>
 );
 
-const IconPipe = ({ className = '' }) => (
+const IconPipe = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M8 6h6a3 3 0 013 3v2" />
     <path d="M17 11h-6a3 3 0 00-3 3v4" />
@@ -59,7 +56,7 @@ const IconPipe = ({ className = '' }) => (
   </Icon>
 );
 
-const IconSaw = ({ className = '' }) => (
+const IconSaw = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M5 15l7-7 7 7" />
     <path d="M6.5 13.5l-2 2" />
@@ -68,7 +65,7 @@ const IconSaw = ({ className = '' }) => (
   </Icon>
 );
 
-const IconBrush = ({ className = '' }) => (
+const IconBrush = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M14 3l7 7-7 7-7-7z" />
     <path d="M7 14l-3 7" />
@@ -76,7 +73,7 @@ const IconBrush = ({ className = '' }) => (
   </Icon>
 );
 
-const IconBroom = ({ className = '' }) => (
+const IconBroom = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M10 3l8 8" />
     <path d="M9 8l7 7" />
@@ -85,7 +82,7 @@ const IconBroom = ({ className = '' }) => (
   </Icon>
 );
 
-const IconSnowflake = ({ className = '' }) => (
+const IconSnowflake = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M12 2v20" />
     <path d="M4.5 6.5l15 11" />
@@ -97,7 +94,7 @@ const IconSnowflake = ({ className = '' }) => (
   </Icon>
 );
 
-const IconBug = ({ className = '' }) => (
+const IconBug = ({ className = "" }) => (
   <Icon className={className}>
     <path d="M9 9h6" />
     <path d="M10 6l2-2 2 2" />
@@ -109,18 +106,117 @@ const IconBug = ({ className = '' }) => (
   </Icon>
 );
 
-// Mock workers
 const ALL_WORKERS = [
-  { id: 1, name: "John Doe", profession: "Electrician", rating: 4.8, price: "$40/hr", mockOffset: { lat: 0.012, lon: 0.008 } },
-  { id: 2, name: "Jane Smith", profession: "Plumber", rating: 4.9, price: "$50/hr", mockOffset: { lat: -0.005, lon: 0.020 } },
-  { id: 3, name: "Mike Johnson", profession: "Carpenter", rating: 4.5, price: "$35/hr", mockOffset: { lat: 0.030, lon: -0.015 } },
-  { id: 4, name: "Ravi Kumar", profession: "Painter", rating: 4.6, price: "$30/hr", mockOffset: { lat: -0.022, lon: -0.010 } },
-  { id: 5, name: "Amit Sharma", profession: "AC Technician", rating: 4.7, price: "$45/hr", mockOffset: { lat: 0.008, lon: -0.025 } },
-  { id: 6, name: "Suresh Patel", profession: "Cleaner", rating: 4.3, price: "$25/hr", mockOffset: { lat: 0.050, lon: 0.030 } },
-  { id: 7, name: "David Lee", profession: "Mechanic", rating: 4.8, price: "$55/hr", mockOffset: { lat: -0.040, lon: 0.015 } },
-  { id: 8, name: "Priya Singh", profession: "Gardener", rating: 4.4, price: "$20/hr", mockOffset: { lat: 0.003, lon: 0.004 } },
-  { id: 9, name: "Imran Khan", profession: "Appliance Repair", rating: 4.6, price: "$35/hr", mockOffset: { lat: -0.018, lon: -0.030 } },
-  { id: 10, name: "Neha Gupta", profession: "Pest Control", rating: 4.5, price: "$40/hr", mockOffset: { lat: 0.025, lon: -0.005 } },
+  {
+    id: 1,
+    name: "John Doe",
+    profession: "Electrician",
+    rating: 4.8,
+    price: "$40/hr",
+    availability: "Available today",
+    responseTime: "Replies in 20 min",
+    outcomeText: "Open the profile to compare pricing, reviews, and booking options.",
+    mockOffset: { lat: 0.012, lon: 0.008 },
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    profession: "Plumber",
+    rating: 4.9,
+    price: "$50/hr",
+    availability: "Next slot this afternoon",
+    responseTime: "Replies in 15 min",
+    outcomeText: "See availability first, then confirm a plumbing booking in one flow.",
+    mockOffset: { lat: -0.005, lon: 0.02 },
+  },
+  {
+    id: 3,
+    name: "Mike Johnson",
+    profession: "Carpenter",
+    rating: 4.5,
+    price: "$35/hr",
+    availability: "Available tomorrow morning",
+    responseTime: "Replies in 35 min",
+    outcomeText: "Review past work and request a carpentry visit from the profile page.",
+    mockOffset: { lat: 0.03, lon: -0.015 },
+  },
+  {
+    id: 4,
+    name: "Ravi Kumar",
+    profession: "Painter",
+    rating: 4.6,
+    price: "$30/hr",
+    availability: "Next slot tomorrow",
+    responseTime: "Replies in 25 min",
+    outcomeText: "Check service details and move straight into booking when ready.",
+    mockOffset: { lat: -0.022, lon: -0.01 },
+  },
+  {
+    id: 5,
+    name: "Amit Sharma",
+    profession: "AC Technician",
+    rating: 4.7,
+    price: "$45/hr",
+    availability: "Emergency slots open",
+    responseTime: "Replies in 10 min",
+    outcomeText: "View service scope, urgency fit, and book an AC repair visit quickly.",
+    mockOffset: { lat: 0.008, lon: -0.025 },
+  },
+  {
+    id: 6,
+    name: "Suresh Patel",
+    profession: "Cleaner",
+    rating: 4.3,
+    price: "$25/hr",
+    availability: "Weekend availability",
+    responseTime: "Replies in 30 min",
+    outcomeText: "Open the profile to compare rates and schedule a cleaning appointment.",
+    mockOffset: { lat: 0.05, lon: 0.03 },
+  },
+  {
+    id: 7,
+    name: "David Lee",
+    profession: "Mechanic",
+    rating: 4.8,
+    price: "$55/hr",
+    availability: "Available this evening",
+    responseTime: "Replies in 20 min",
+    outcomeText: "See diagnostic pricing and book a mechanic visit with clearer expectations.",
+    mockOffset: { lat: -0.04, lon: 0.015 },
+  },
+  {
+    id: 8,
+    name: "Priya Singh",
+    profession: "Gardener",
+    rating: 4.4,
+    price: "$20/hr",
+    availability: "Morning slots open",
+    responseTime: "Replies in 40 min",
+    outcomeText: "Review service options and book a gardener for regular or one-time visits.",
+    mockOffset: { lat: 0.003, lon: 0.004 },
+  },
+  {
+    id: 9,
+    name: "Imran Khan",
+    profession: "Appliance Repair",
+    rating: 4.6,
+    price: "$35/hr",
+    availability: "Next slot tomorrow",
+    responseTime: "Replies in 25 min",
+    outcomeText: "Open the profile to check appliance support and request a repair appointment.",
+    mockOffset: { lat: -0.018, lon: -0.03 },
+  },
+  {
+    id: 10,
+    name: "Neha Gupta",
+    profession: "Pest Control",
+    rating: 4.5,
+    price: "$40/hr",
+    availability: "Inspection slots open",
+    responseTime: "Replies in 15 min",
+    outcomeText: "View treatment details and book an inspection without leaving the flow.",
+    mockOffset: { lat: 0.025, lon: -0.005 },
+  },
 ];
 
 const workerIconMap = {
@@ -136,363 +232,47 @@ const workerIconMap = {
   "Pest Control": IconBug,
 };
 
-// ---------------- HELPERS ----------------
-
-const getDistanceKm = (lat1, lon1, lat2, lon2) => {
-  const R = 6371;
-
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
-
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+const categoryDescriptions = {
+  Electrician: "Troubleshoot wiring, fixtures, and urgent power issues.",
+  Plumber: "Compare nearby plumbers for leaks, fittings, and drain fixes.",
+  Carpenter: "Find help for repairs, custom work, and installations.",
+  Cleaner: "Book trusted cleaners for one-time or recurring support.",
+  Painter: "Browse painters for quick touch-ups or full-room refreshes.",
+  "AC Technician": "See technicians for cooling issues, servicing, and installs.",
 };
 
-const formatDistance = (km) =>
-  km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+const Home = () => {
+  const { coords, loading: geoLoading, error: geoError } = useLocation();
 
-const Services = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // ---------------- STATES ----------------
-
-  const [searchQuery, setSearchQuery] = useState(
-    searchParams.get("search") || ""
-  );
-
-  const [categoryFilter, setCategoryFilter] = useState(
-    searchParams.get("category") || "All"
-  );
-
-  const [sortBy, setSortBy] = useState(
-    searchParams.get("sort") || "distance"
-  );
-
-  const [workers, setWorkers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [coords, setCoords] = useState(null);
-
-  // ---------------- CATEGORIES ----------------
-
-  const categories = [
-    "All",
-    "Electrician",
-    "Plumber",
-    "Carpenter",
-    "Painter",
-    "AC Technician",
-    "Cleaner",
-    "Mechanic",
-    "Gardener",
-    "Appliance Repair",
-    "Pest Control",
-  ];
-
-  const iconMap = {
-    Electrician: "⚡",
-    Plumber: "🚰",
-    Carpenter: "🪵",
-    Painter: "🎨",
-    "AC Technician": "❄️",
-    Cleaner: "🧹",
-    Mechanic: "🔧",
-    Gardener: "🌱",
-    "Appliance Repair": "🔌",
-    "Pest Control": "🐜",
-  };
-
-  // ---------------- LOCATION ----------------
-
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition((pos) => {
-      setCoords({
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-      });
-    });
-  }, []);
-
-  // ---------------- MOCK DATA ----------------
-
-  useEffect(() => {
-    setLoading(true);
-
-    setTimeout(() => {
-      setWorkers([
-        {
-          id: 1,
-          name: "John Doe",
-          profession: "Electrician",
-          rating: 4.8,
-          price: 40,
-          experience: 6,
-          completedJobs: 124,
-          available: true,
-          responseTime: "10 mins",
-          verified: true,
-        },
-
-        {
-          id: 2,
-          name: "Jane Smith",
-          profession: "Plumber",
-          rating: 4.9,
-          price: 50,
-          experience: 8,
-          completedJobs: 201,
-          available: false,
-          responseTime: "20 mins",
-          verified: true,
-        },
-
-        {
-          id: 3,
-          name: "Mike Johnson",
-          profession: "Carpenter",
-          rating: 4.5,
-          price: 35,
-          experience: 5,
-          completedJobs: 98,
-          available: true,
-          responseTime: "15 mins",
-          verified: false,
-        },
-
-        {
-          id: 4,
-          name: "Ravi Kumar",
-          profession: "Painter",
-          rating: 4.6,
-          price: 30,
-          experience: 4,
-          completedJobs: 76,
-          available: true,
-          responseTime: "12 mins",
-          verified: true,
-        },
-
-        {
-          id: 5,
-          name: "Amit Sharma",
-          profession: "AC Technician",
-          rating: 4.7,
-          price: 45,
-          experience: 7,
-          completedJobs: 180,
-          available: false,
-          responseTime: "25 mins",
-          verified: true,
-        },
-
-        {
-          id: 6,
-          name: "Rahul Das",
-          profession: "Cleaner",
-          rating: 4.4,
-          price: 25,
-          experience: 3,
-          completedJobs: 63,
-          available: true,
-          responseTime: "8 mins",
-          verified: false,
-        },
-
-        {
-          id: 7,
-          name: "Suresh Patel",
-          profession: "Mechanic",
-          rating: 4.8,
-          price: 55,
-          experience: 9,
-          completedJobs: 245,
-          available: true,
-          responseTime: "18 mins",
-          verified: true,
-        },
-
-        {
-          id: 8,
-          name: "Arjun Singh",
-          profession: "Gardener",
-          rating: 4.3,
-          price: 20,
-          experience: 2,
-          completedJobs: 40,
-          available: true,
-          responseTime: "5 mins",
-          verified: false,
-        },
-      ]);
-
-      setLoading(false);
-    }, 700);
-  }, []);
-
-  // ---------------- URL SYNC ----------------
-
-  useEffect(() => {
-    const params = {};
-
-    if (searchQuery) {
-      params.search = searchQuery;
+  const nearbyWorkers = useMemo(() => {
+    if (!coords) {
+      return [];
     }
 
-    if (categoryFilter !== "All") {
-      params.category = categoryFilter;
-    }
-
-    if (sortBy !== "distance") {
-      params.sort = sortBy;
-    }
-
-    setSearchParams(params);
-  }, [
-    searchQuery,
-    categoryFilter,
-    sortBy,
-    setSearchParams,
-  ]);
-
-  // ---------------- PROCESS WORKERS ----------------
-
-  const processedWorkers = useMemo(() => {
-    let result = workers.map((w) => {
-      let distance = null;
-
-      if (coords) {
-        distance = getDistanceKm(
-          coords.latitude,
-          coords.longitude,
-          coords.latitude + Math.random() * 0.05,
-          coords.longitude + Math.random() * 0.05
-        );
-      }
+    return ALL_WORKERS.map((worker) => {
+      const workerLat = coords.latitude + worker.mockOffset.lat;
+      const workerLon = coords.longitude + worker.mockOffset.lon;
 
       return {
-        ...w,
-        distanceKm: distance,
+        ...worker,
+        distanceKm: getDistanceKm(
+          coords.latitude,
+          coords.longitude,
+          workerLat,
+          workerLon
+        ),
       };
-    });
-
-    // SEARCH
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-
-      result = result.filter(
-        (w) =>
-          w.name.toLowerCase().includes(q) ||
-          w.profession.toLowerCase().includes(q)
-      );
-    }
-
-    // CATEGORY
-    if (categoryFilter !== "All") {
-      result = result.filter(
-        (w) => w.profession === categoryFilter
-      );
-    }
-
-    // SORT
-    if (sortBy === "rating") {
-      result.sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === "price") {
-      result.sort((a, b) => a.price - b.price);
-    } else {
-      result.sort(
-        (a, b) => (a.distanceKm || 999) - (b.distanceKm || 999)
-      );
-    }
-
-    return result;
-  }, [
-    workers,
-    searchQuery,
-    categoryFilter,
-    sortBy,
-    coords,
-  ]);
-
-  // ---------------- UI ----------------
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-      {/* HEADER */}
-
-      <div className="text-center mb-12">
-
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight">
-          Find Trusted Skilled Professionals
-        </h1>
-
-        <p className="text-slate-600 mt-4 max-w-2xl mx-auto text-sm sm:text-base">
-          Compare ratings, pricing, experience and availability
-          to hire the best workers near you.
-        </p>
-
-      </div>
-
-      {/* SEARCH + FILTER */}
-
-      <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm mb-10">
-
-        <div className="flex flex-col lg:flex-row gap-4">
-
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search electricians, plumbers, painters..."
-            className="flex-1 px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="distance">Nearest</option>
-            <option value="rating">Top Rated</option>
-            <option value="price">Lowest Price</option>
-          </select>
-
-        </div>
-
-        {/* CATEGORY BUTTONS */}
-
-        <div className="flex flex-wrap gap-3 mt-6">
-
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-4 py-2 rounded-full text-sm border transition-all duration-300 ${
-                categoryFilter === cat
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                  : "bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:text-blue-600"
-              }`}
-            >
-              {iconMap[cat] && (
-                <span className="mr-1">
-                  {iconMap[cat]}
-                </span>
-              )}
-
-              {cat}
-            </button>
-          ))}
+    })
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 3);
+  }, [coords]);
 
   return (
     <div className="bg-white">
-      {/* Hero */}
-      <section className="relative bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div className="relative pb-56 sm:pb-64 lg:pb-72">
-            <div className="relative rounded-[36px] shadow-[0_18px_40px_rgba(15,23,42,0.18)] overflow-hidden">
+      <section className="relative overflow-hidden bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="relative pb-24 sm:pb-28">
+            <div className="relative overflow-hidden rounded-[36px] shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
               <div className="relative h-[320px] sm:h-[380px] lg:h-[420px]">
                 <img
                   src="/hero-section.png"
@@ -503,23 +283,32 @@ const Services = () => {
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-[220px] sm:top-[260px] lg:top-[290px] -translate-x-1/2 w-full px-5 sm:px-8">
-              <div className="mx-auto w-full max-w-[560px] rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_14px_32px_rgba(15,23,42,0.18)] px-7 py-7 sm:px-10 sm:py-9 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold mb-5">
-                  ⭐ Trusted by 10,000+ homeowners
+            <div className="absolute left-1/2 top-[220px] w-full -translate-x-1/2 px-5 sm:top-[260px] sm:px-8 lg:top-[290px]">
+              <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-slate-200 bg-white/95 px-7 py-7 text-center shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur sm:px-10 sm:py-9">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
+                  Trusted by 10,000+ homeowners
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
                   Reliable Home Services,
-                  <span className="block text-[#0056D2]">Right When You Need Them</span>
+                  <span className="block text-[#0056D2]">
+                    Right When You Need Them
+                  </span>
                 </h1>
-                <p className="mt-6 text-lg sm:text-xl leading-relaxed text-slate-600">
-                  Find verified professionals near you — fast booking, transparent pricing, and trusted service.
+                <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
+                  Find verified professionals near you with fast booking,
+                  transparent pricing, and clearer next steps.
                 </p>
                 <div className="mt-8 flex items-center justify-center gap-3">
-                  <Link to="/services" className="inline-flex items-center justify-center rounded-lg bg-[#0056D2] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0047AF] transition">
+                  <Link
+                    to="/services"
+                    className="inline-flex items-center justify-center rounded-lg bg-[#0056D2] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0047AF]"
+                  >
                     Find a Pro
                   </Link>
-                  <Link to="/worker-register" className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2 text-sm font-semibold text-slate-800 border border-slate-300 hover:bg-slate-50 transition">
+                  <Link
+                    to="/worker-register"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                  >
                     Become a Pro
                   </Link>
                 </div>
@@ -529,305 +318,218 @@ const Services = () => {
         </div>
       </section>
 
-      {/* Trust Signals */}
-      <section className="py-20 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Why Choose <span className="text-[#0056D2]">FixNearby</span></h2>
-            <p className="mt-5 text-lg text-slate-600">We focus on safety, reliability, and quality service.</p>
+      <section className="border-t border-slate-100 bg-slate-50 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-14 max-w-3xl text-center">
+            <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
+              Why Choose <span className="text-[#0056D2]">FixNearby</span>
+            </h2>
+            <p className="mt-5 text-lg text-slate-600">
+              We focus on safety, reliability, and quality service.
+            </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {[
-              { number: "10K+", label: "Happy Customers", icon: "😊" },
-              { number: "500+", label: "Verified Pros", icon: "🛠️" },
-              { number: "24/7", label: "Support", icon: "📞" },
-              { number: "4.9★", label: "Rating", icon: "⭐" },
-            ].map((item, idx) => (
-              <div key={idx} className="bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-sm hover:shadow-xl transition">
-                <div className="text-5xl mb-4">{item.icon}</div>
-                <div className="text-4xl font-extrabold text-slate-900">{item.number}</div>
-                <p className="mt-2 text-slate-500 font-medium">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-      </div>
-
-      {/* RESULTS COUNT */}
-
-      {!loading && (
-        <div className="flex items-center justify-between mb-6">
-
-          <p className="text-slate-600 text-sm sm:text-base">
-            Showing{" "}
-            <span className="font-semibold text-slate-900">
-              {processedWorkers.length}
-            </span>{" "}
-            professionals
-          </p>
-
-        </div>
-      )}
-
-      {/* CONTENT */}
-
-      {loading ? (
-        <LoadingSpinner />
-      ) : processedWorkers.length === 0 ? (
-        <div className="text-center py-20">
-
-          <div className="text-6xl mb-4">
-            🔍
-          </div>
-
-          <h3 className="text-2xl font-bold text-slate-900">
-            No workers found
-          </h3>
-
-          <p className="text-slate-500 mt-2">
-            Try searching another category or keyword
-          </p>
-
-        </div>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-7">
-
-          {processedWorkers.map((w) => (
-            <div
-              key={w.id}
-              className="group bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden relative"
-            >
-
-              {/* TOP SECTION */}
-
-              <div className="flex items-start justify-between">
-
-                <div>
-
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
-                    {iconMap[w.profession]}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 flex-wrap">
-
-                    {w.name}
-
-                    {w.verified && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        Verified
-                      </span>
-                    )}
-
-                  </h3>
-
-                  <p className="text-blue-600 font-medium mt-1">
-                    {w.profession}
-                  </p>
-
+              { number: "10K+", label: "Happy Customers", icon: "HC" },
+              { number: "500+", label: "Verified Pros", icon: "VP" },
+              { number: "24/7", label: "Support", icon: "SU" },
+              { number: "4.9/5", label: "Rating", icon: "RT" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:shadow-xl"
+              >
+                <div className="mb-4 text-2xl font-bold text-[#0056D2]">
+                  {item.icon}
                 </div>
-
-                <div
-                  className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                    w.available
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {w.available ? "Available" : "Busy"}
+                <div className="text-4xl font-extrabold text-slate-900">
+                  {item.number}
                 </div>
-
-      {/* Nearby Pros */}
-      {(geoLoading || coords || geoError) && (
-        <section className="py-16 sm:py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-start justify-between gap-6 flex-col md:flex-row md:items-center mb-10">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-semibold border border-emerald-100">
-                  <span className={`w-2 h-2 rounded-full bg-emerald-500 ${coords ? 'animate-pulse' : ''}`} />
-                  {coords ? 'Live location' : geoLoading ? 'Detecting location…' : 'Location unavailable'}
-                </div>
-                <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">Closest to you</h2>
-              </div>
-              <Link to="/services" className="font-semibold text-[#0056D2] hover:underline underline-offset-4">Browse all pros →</Link>
-            </div>
-
-            {geoLoading && <div className="text-center py-12 text-slate-500 font-medium">Requesting location permission…</div>}
-            {geoError && !geoLoading && (
-              <div className="text-center py-10 bg-amber-50 rounded-2xl border border-amber-100 max-w-xl mx-auto">
-                <p className="text-amber-900 font-semibold">{geoError}</p>
-              </div>
-            )}
-
-            {coords && nearbyWorkers.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {nearbyWorkers.map((worker) => {
-                  const WorkerIcon = workerIconMap[worker.profession] || IconBolt;
-                  return (
-                    <div key={worker.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-slate-200 transition-all overflow-hidden flex flex-col p-7">
-                      <div className="flex items-start justify-between mb-5">
-                        <div className="w-14 h-14 bg-white rounded-2xl border border-slate-200 flex items-center justify-center shadow-sm">
-                          <WorkerIcon className="h-8 w-8 text-slate-900" />
-                        </div>
-                        <div className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-                          📍 {formatDistance(worker.distanceKm)}
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-0.5">{worker.name}</h3>
-                      <p className="text-[#0056D2] font-semibold text-sm mb-4">{worker.profession}</p>
-                      <div className="flex items-center gap-3 text-sm text-slate-600 mb-6">
-                        <span>★ {worker.rating}</span>
-                        <div className="w-px h-4 bg-slate-300" />
-                        <span>{worker.price}</span>
-                      </div>
-                      <Link to={`/worker/${worker.id}`} className="block w-full text-center bg-slate-900 hover:bg-[#0056D2] text-white font-bold py-3.5 rounded-xl transition">
-                        View & Book
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* STATS GRID */}
-
-              <div className="grid grid-cols-2 gap-4 mt-6">
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-
-                  <p className="text-xs text-slate-500 mb-1">
-                    Rating
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    ⭐ {w.rating}
-                  </p>
-
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-
-                  <p className="text-xs text-slate-500 mb-1">
-                    Price
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    ${w.price}/hr
-                  </p>
-
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-
-                  <p className="text-xs text-slate-500 mb-1">
-                    Experience
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    {w.experience} Years
-                  </p>
-
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-
-                  <p className="text-xs text-slate-500 mb-1">
-                    Jobs Done
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    {w.completedJobs}+
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* EXTRA INFO */}
-
-              <div className="mt-5 space-y-3 text-sm">
-
-                <div className="flex items-center justify-between text-slate-600">
-
-                  <span>
-                    ⚡ Response Time
-                  </span>
-
-                  <span className="font-medium text-slate-900">
-                    {w.responseTime}
-                  </span>
-
-                </div>
-
-                {w.distanceKm && (
-                  <div className="flex items-center justify-between text-slate-600">
-
-                    <span>
-                      📍 Distance
-                    </span>
-
-                    <span className="font-medium text-emerald-600">
-                      {formatDistance(w.distanceKm)}
-                    </span>
-
-                  </div>
-                )}
-
-              </div>
-
-              {/* BUTTONS */}
-
-              <div className="grid grid-cols-2 gap-3 mt-7">
-
-                <button className="border border-slate-300 rounded-2xl py-3 font-medium hover:border-blue-500 hover:text-blue-600 transition">
-                  Message
-                </button>
-
-                <Link
-                  to={`/worker/${w.id}`}
-                  className="bg-slate-900 text-white text-center py-3 rounded-2xl font-medium hover:bg-blue-600 transition"
-                >
-                  Book Now
-                </Link>
-
-              </div>
-
-            </div>
-          ))}
-
-      {/* How it Works */}
-      <section id="how-it-works" className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-5xl font-extrabold text-slate-900 mb-4">How it works</h2>
-          <p className="text-lg text-slate-600 mb-16">Three simple steps to get it done.</p>
-          <div className="grid md:grid-cols-3 gap-14 relative">
-            {[
-              { step: '1', title: 'Search & Select', desc: 'Browse profiles and read reviews.', IconComp: IconSearch },
-              { step: '2', title: 'Book Directly', desc: 'Schedule appointments instantly.', IconComp: IconCalendar },
-              { step: '3', title: 'Relax & Enjoy', desc: 'Let the expert handle the job.', IconComp: IconCheckCircle },
-            ].map((s) => (
-              <div key={s.step} className="relative">
-                <div className="mx-auto w-[92px] h-[92px] rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-6">
-                  <s.IconComp className="h-11 w-11 text-slate-900" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">{s.step}. {s.title}</h3>
-                <p className="mt-2 text-slate-600 max-w-xs mx-auto">{s.desc}</p>
+                <p className="mt-2 font-medium text-slate-500">{item.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-extrabold text-slate-900 mb-12">Popular Categories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {['Electrician', 'Plumber', 'Carpenter', 'Cleaner', 'Painter', 'AC Technician'].map((category) => {
-              const CategoryIcon = categoryIconMap[category] || IconBolt;
+      {(geoLoading || coords || geoError) && (
+        <section className="bg-white py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-1.5 text-sm font-semibold text-emerald-700">
+                  <span
+                    className={`h-2 w-2 rounded-full bg-emerald-500 ${
+                      coords ? "animate-pulse" : ""
+                    }`}
+                  />
+                  {coords
+                    ? "Live location"
+                    : geoLoading
+                      ? "Detecting location..."
+                      : "Location unavailable"}
+                </div>
+                <h2 className="mt-4 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                  Closest to you
+                </h2>
+              </div>
+              <Link
+                to="/services"
+                className="font-semibold text-[#0056D2] hover:underline"
+              >
+                Browse all pros
+              </Link>
+            </div>
+
+            {geoLoading && (
+              <div className="py-12 text-center font-medium text-slate-500">
+                Requesting location permission...
+              </div>
+            )}
+
+            {geoError && !geoLoading && (
+              <div className="mx-auto max-w-xl rounded-2xl border border-amber-100 bg-amber-50 py-10 text-center">
+                <p className="font-semibold text-amber-900">{geoError}</p>
+              </div>
+            )}
+
+            {coords && nearbyWorkers.length > 0 && (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                {nearbyWorkers.map((worker) => {
+                  const WorkerIcon = workerIconMap[worker.profession] || IconBolt;
+
+                  return (
+                    <div
+                      key={worker.id}
+                      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:shadow-lg"
+                    >
+                      <div className="mb-5 flex items-start justify-between">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+                          <WorkerIcon className="h-8 w-8 text-slate-900" />
+                        </div>
+                        <div className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                          Near you: {formatDistance(worker.distanceKm)}
+                        </div>
+                      </div>
+
+                      <h3 className="mb-0.5 text-xl font-bold text-slate-900">
+                        {worker.name}
+                      </h3>
+                      <p className="mb-4 text-sm font-semibold text-[#0056D2]">
+                        {worker.profession}
+                      </p>
+
+                      <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                          {worker.availability}
+                        </span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                          {worker.responseTime}
+                        </span>
+                      </div>
+
+                      <div className="mb-6 flex items-center gap-3 text-sm text-slate-600">
+                        <span>Rating {worker.rating}</span>
+                        <div className="h-4 w-px bg-slate-300" />
+                        <span>{worker.price}</span>
+                      </div>
+
+                      <p className="mb-6 text-sm leading-6 text-slate-600">
+                        {worker.outcomeText}
+                      </p>
+
+                      <Link
+                        to={`/worker/${worker.id}`}
+                        className="block w-full rounded-xl bg-slate-900 py-3.5 text-center font-bold text-white transition hover:bg-[#0056D2]"
+                      >
+                        View Profile and Book
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      <section id="how-it-works" className="bg-slate-50 py-24">
+        <div className="mx-auto max-w-7xl px-4 text-center">
+          <h2 className="mb-4 text-5xl font-extrabold text-slate-900">
+            How it works
+          </h2>
+          <p className="mb-16 text-lg text-slate-600">
+            Three simple steps to get it done.
+          </p>
+          <div className="relative grid gap-14 md:grid-cols-3">
+            {[
+              {
+                step: "1",
+                title: "Search and Select",
+                desc: "Browse profiles and read reviews.",
+                IconComp: IconSearch,
+              },
+              {
+                step: "2",
+                title: "Book Directly",
+                desc: "Schedule appointments instantly.",
+                IconComp: IconCalendar,
+              },
+              {
+                step: "3",
+                title: "Relax and Enjoy",
+                desc: "Let the expert handle the job.",
+                IconComp: IconCheckCircle,
+              },
+            ].map((step) => (
+              <div key={step.step} className="relative">
+                <div className="mx-auto mb-6 flex h-[92px] w-[92px] items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+                  <step.IconComp className="h-11 w-11 text-slate-900" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {step.step}. {step.title}
+                </h3>
+                <p className="mx-auto mt-2 max-w-xs text-slate-600">
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 text-center">
+          <h2 className="mb-12 text-4xl font-extrabold text-slate-900">
+            Popular Categories
+          </h2>
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-3">
+            {[
+              "Electrician",
+              "Plumber",
+              "Carpenter",
+              "Cleaner",
+              "Painter",
+              "AC Technician",
+            ].map((category) => {
+              const CategoryIcon = workerIconMap[category] || IconBolt;
+
               return (
-                <Link key={category} to={`/services?category=${category}`} className="group rounded-2xl border-2 border-slate-100 bg-white p-8 hover:border-[#0056D2] transition shadow-sm hover:shadow-md">
-                  <CategoryIcon className="h-12 w-12 text-slate-900 group-hover:text-[#0056D2] transition mx-auto mb-4" />
-                  <div className="font-semibold text-slate-900">{category}</div>
+                <Link
+                  key={category}
+                  to={`/services?category=${category}`}
+                  className="group rounded-2xl border-2 border-slate-100 bg-white p-8 text-left shadow-sm transition hover:border-[#0056D2] hover:shadow-md"
+                >
+                  <CategoryIcon className="mx-auto mb-4 h-12 w-12 text-slate-900 transition group-hover:text-[#0056D2]" />
+                  <div className="text-center font-semibold text-slate-900">
+                    {category}
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    {categoryDescriptions[category]}
+                  </p>
+                  <div className="mt-4 text-sm font-semibold text-[#0056D2]">
+                    See available pros
+                  </div>
                 </Link>
               );
             })}
@@ -835,22 +537,31 @@ const Services = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-[#0056D2] text-center text-white">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-4xl font-extrabold mb-4">Need help today?</h2>
-          <p className="text-white/80 mb-8 text-lg">Book trusted professionals in minutes and get your home back on track.</p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/services" className="bg-white text-[#0056D2] px-8 py-3 rounded-xl font-semibold hover:bg-slate-100 transition shadow-sm">Find a Pro</Link>
-            <Link to="/worker-register" className="border border-white/40 text-white px-8 py-3 rounded-xl font-semibold hover:bg-white/10 transition">Become a Pro</Link>
+      <section className="bg-[#0056D2] py-20 text-center text-white">
+        <div className="mx-auto max-w-3xl px-4">
+          <h2 className="mb-4 text-4xl font-extrabold">Need help today?</h2>
+          <p className="mb-8 text-lg text-white/80">
+            Book trusted professionals in minutes and get your home back on
+            track.
+          </p>
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              to="/services"
+              className="rounded-xl bg-white px-8 py-3 font-semibold text-[#0056D2] shadow-sm transition hover:bg-slate-100"
+            >
+              Find a Pro
+            </Link>
+            <Link
+              to="/worker-register"
+              className="rounded-xl border border-white/40 px-8 py-3 font-semibold text-white transition hover:bg-white/10"
+            >
+              Become a Pro
+            </Link>
           </div>
         </div>
-      )}
-
+      </section>
     </div>
   );
 };
 
-export default Services;
 export default Home;
-

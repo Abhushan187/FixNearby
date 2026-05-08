@@ -8,14 +8,11 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <LocationProvider>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </LocationProvider>
     <AuthProvider>
       <LocationProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </LocationProvider>
     </AuthProvider>
   </React.StrictMode>,
