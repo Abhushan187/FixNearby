@@ -1,18 +1,19 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import { useState, useEffect, useMemo } from 'react';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Services = () => {
   const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(
-    searchParams.get("search") || ""
+    searchParams.get("search") || "",
   );
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [priceRange, setPriceRange] = useState([20, 80]);
   const [workers, setWorkers] = useState([]);
   const [error, setError] = useState(null);
+  const [recentWorkers, setRecentWorkers] = useState([]);
 
   // 🌍 Location state (FIXED)
   const [coords, setCoords] = useState(null);
@@ -52,21 +53,96 @@ const Services = () => {
     setTimeout(() => {
       try {
         const data = [
-          { id: 1, name: "John Doe", profession: "Electrician", rating: 4.8, price: "$40/hr", verified: true },
-          { id: 2, name: "Jane Smith", profession: "Plumber", rating: 4.9, price: "$50/hr", verified: true },
-          { id: 3, name: "Mike Johnson", profession: "Carpenter", rating: 4.5, price: "$35/hr", verified: true },
-          { id: 4, name: "Ravi Kumar", profession: "Painter", rating: 4.6, price: "$30/hr", verified: true },
-          { id: 5, name: "Amit Sharma", profession: "AC Technician", rating: 4.7, price: "$45/hr", verified: true },
-          { id: 6, name: "Suresh Patel", profession: "Cleaner", rating: 4.3, price: "$25/hr", verified: true },
-          { id: 7, name: "David Lee", profession: "Mechanic", rating: 4.8, price: "$55/hr", verified: true },
-          { id: 8, name: "Priya Singh", profession: "Gardener", rating: 4.4, price: "$20/hr", verified: true },
-          { id: 9, name: "Imran Khan", profession: "Appliance Repair", rating: 4.6, price: "$35/hr", verified: true },
-          { id: 10, name: "Neha Gupta", profession: "Pest Control", rating: 4.5, price: "$40/hr", verified: true },
+          {
+            id: 1,
+            name: "John Doe",
+            profession: "Electrician",
+            rating: 4.8,
+            price: "$40/hr",
+            verified: true,
+          },
+          {
+            id: 2,
+            name: "Jane Smith",
+            profession: "Plumber",
+            rating: 4.9,
+            price: "$50/hr",
+            verified: true,
+          },
+          {
+            id: 3,
+            name: "Mike Johnson",
+            profession: "Carpenter",
+            rating: 4.5,
+            price: "$35/hr",
+            verified: true,
+          },
+          {
+            id: 4,
+            name: "Ravi Kumar",
+            profession: "Painter",
+            rating: 4.6,
+            price: "$30/hr",
+            verified: true,
+          },
+          {
+            id: 5,
+            name: "Amit Sharma",
+            profession: "AC Technician",
+            rating: 4.7,
+            price: "$45/hr",
+            verified: true,
+          },
+          {
+            id: 6,
+            name: "Suresh Patel",
+            profession: "Cleaner",
+            rating: 4.3,
+            price: "$25/hr",
+            verified: true,
+          },
+          {
+            id: 7,
+            name: "David Lee",
+            profession: "Mechanic",
+            rating: 4.8,
+            price: "$55/hr",
+            verified: true,
+          },
+          {
+            id: 8,
+            name: "Priya Singh",
+            profession: "Gardener",
+            rating: 4.4,
+            price: "$20/hr",
+            verified: true,
+          },
+          {
+            id: 9,
+            name: "Imran Khan",
+            profession: "Appliance Repair",
+            rating: 4.6,
+            price: "$35/hr",
+            verified: true,
+          },
+          {
+            id: 10,
+            name: "Neha Gupta",
+            profession: "Pest Control",
+            rating: 4.5,
+            price: "$40/hr",
+            verified: true,
+          },
         ];
 
         setWorkers(data);
-        setLoading(false);
 
+        const storedRecent =
+          JSON.parse(localStorage.getItem("recentWorkers")) || [];
+
+        setRecentWorkers(storedRecent);
+
+        setLoading(false);
       } catch (err) {
         setError("Failed to load workers");
         setLoading(false);
@@ -77,7 +153,6 @@ const Services = () => {
   // Filter workers
   const filteredWorkers = useMemo(() => {
     return workers.filter((worker) => {
-
       const query = searchQuery.toLowerCase();
 
       const matchesSearch =
@@ -85,21 +160,34 @@ const Services = () => {
         worker.profession.toLowerCase().includes(query);
 
       const matchesCategory =
-        categoryFilter === "All" ||
-        worker.profession === categoryFilter;
+        categoryFilter === "All" || worker.profession === categoryFilter;
 
       return matchesSearch && matchesCategory;
     });
   }, [workers, searchQuery, categoryFilter]);
 
+  const handleRecentlyViewed = (worker) => {
+    let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
+
+    // Remove duplicates
+    stored = stored.filter((item) => item.id !== worker.id);
+
+    // Add newest worker at top
+    stored.unshift(worker);
+
+    // Keep only latest 5
+    stored = stored.slice(0, 5);
+
+    localStorage.setItem("recentWorkers", JSON.stringify(stored));
+
+    setRecentWorkers(stored);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      
       {/* Header */}
       <div className="mb-6 text-center">
-        <h1 className="text-4xl font-bold">
-          Find Reliable Services Near You
-        </h1>
+        <h1 className="text-4xl font-bold">Find Reliable Services Near You</h1>
 
         <p className="text-gray-500 mt-2">
           Discover top-rated professionals in your neighborhood
@@ -108,9 +196,7 @@ const Services = () => {
 
       {/* Filters */}
       <div className="mb-10 space-y-6">
-
         <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
-
           <div className="relative flex-1">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               🔍
@@ -127,7 +213,7 @@ const Services = () => {
 
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
+              onClick={() => setSearchQuery("")}
               className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition"
             >
               Clear
@@ -136,15 +222,14 @@ const Services = () => {
         </div>
 
         <div className="flex flex-wrap justify-center gap-2">
-
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                 categoryFilter === cat
-                  ? 'bg-blue-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-400 hover:text-blue-600 shadow-sm'
+                  ? "bg-blue-600 text-white shadow-lg scale-105"
+                  : "bg-white text-gray-600 border border-gray-200 hover:border-blue-400 hover:text-blue-600 shadow-sm"
               }`}
             >
               {cat !== "All" && iconMap[cat] && (
@@ -157,21 +242,55 @@ const Services = () => {
         </div>
       </div>
 
+      {/* Recently Viewed Professionals */}
+      {recentWorkers.length > 0 && (
+        <div className="mb-14">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-2xl">⭐</span>
+
+            <h2 className="text-2xl font-bold text-gray-900">
+              Recently Viewed Professionals
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recentWorkers.map((worker) => (
+              <div
+                key={worker.id}
+                className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg transition p-6"
+              >
+                <div className="text-4xl mb-4">
+                  {iconMap[worker.profession] || "👷"}
+                </div>
+
+                <h3 className="font-bold text-lg text-gray-900">
+                  {worker.name}
+                </h3>
+
+                <p className="text-blue-600 font-medium mb-3">
+                  {worker.profession}
+                </p>
+
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>⭐ {worker.rating}</span>
+
+                  <span>{worker.price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
-
         <LoadingSpinner />
-
       ) : error ? (
-
         <div className="text-center py-20 text-red-600 font-medium">
           {error}
         </div>
-
       ) : filteredWorkers.length === 0 ? (
-
         <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-
           <div className="text-6xl mb-4">🔦</div>
 
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -184,38 +303,30 @@ const Services = () => {
 
           <button
             onClick={() => {
-              setSearchQuery('');
-              setCategoryFilter('All');
+              setSearchQuery("");
+              setCategoryFilter("All");
             }}
             className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition"
           >
             Reset All Filters
           </button>
-
         </div>
-
       ) : (
-
         <>
           <p className="text-sm text-gray-500 mb-6 font-medium">
             Showing {filteredWorkers.length} professionals found
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-
             {filteredWorkers.map((worker) => (
-
               <div
                 key={worker.id}
                 className="group bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-gray-100 hover:border-blue-100 transition-all duration-300 overflow-hidden flex flex-col"
               >
-
                 <div className="p-8 flex-1">
-
                   <div className="flex items-start justify-between mb-6">
-
                     <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                      {iconMap[worker.profession] || '👷'}
+                      {iconMap[worker.profession] || "👷"}
                     </div>
 
                     {worker.verified && (
@@ -235,7 +346,6 @@ const Services = () => {
                   </p>
 
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-6 bg-gray-50 p-3 rounded-lg">
-
                     <div className="flex items-center gap-1">
                       <span className="text-yellow-400">★</span>
 
@@ -253,14 +363,13 @@ const Services = () => {
                 </div>
 
                 <div className="p-8 pt-0">
-
                   <Link
                     to={`/worker/${worker.id}`}
+                    onClick={() => handleRecentlyViewed(worker)}
                     className="block w-full text-center bg-gray-900 hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-blue-200"
                   >
                     View Details & Book
                   </Link>
-
                 </div>
               </div>
             ))}
