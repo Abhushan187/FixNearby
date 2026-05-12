@@ -282,7 +282,6 @@ const Register = () => {
           >
             {loading ? "Creating your account..." : "Create account"}
           </button>
-          </div>
         </form>
 
         {/* Footer */}
