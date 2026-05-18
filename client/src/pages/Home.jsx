@@ -222,9 +222,7 @@ const ALL_WORKERS = [
   },
 ];
 
-const Home = () => {
-  const [workers, setWorkers] = useState([]);
-  const { t } = useTranslation();
+
 const workerIconMap = {
   Electrician: IconBolt,
   Plumber: IconPipe,
@@ -307,6 +305,7 @@ const Home = () => {
                 <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
                   Find verified professionals near you with fast booking,
                   transparent pricing, and clearer next steps.
+      
       {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
