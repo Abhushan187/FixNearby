@@ -82,3 +82,18 @@ export const getWorkers = async (req, res) => {
     });
   }
 };
+
+export const getWorkerById = async (req, res) => {
+  try {
+    const worker = await Worker.findById(req.params.id);
+    if (!worker) {
+      return res.status(404).json({ message: 'Worker not found' });
+    }
+    res.status(200).json(worker);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+};

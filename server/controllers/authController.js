@@ -13,7 +13,7 @@ const generateToken = (id) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     // 1. Check all fields
     if (!name || !email || !password) {
@@ -56,6 +56,7 @@ export const registerUser = async (req, res) => {
       name: name.trim(),
       email: normalizedEmail,
       password,
+      phone: phone ? phone.trim() : undefined,
     });
 
     // 7. Response 
@@ -63,6 +64,7 @@ export const registerUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       token: generateToken(user._id),
     });
 
@@ -91,6 +93,7 @@ export const loginUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         token: generateToken(user._id),
       });
     } else {
@@ -110,8 +113,38 @@ export const getUserProfile = async (req, res) => {
       _id: req.user._id,
       name: req.user.name,
       email: req.user.email,
+      phone: req.user.phone,
     });
 
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
+
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+
+      res.status(200).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

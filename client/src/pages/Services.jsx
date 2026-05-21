@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { fetchWorkers } from "../services/workerService";
 
 const mockWorkers = [
   {
@@ -218,15 +219,30 @@ const Services = () => {
 
   // LOAD WORKERS
   useEffect(() => {
-    setLoading(true);
-    const timer = window.setTimeout(() => {
-      setWorkers(mockWorkers);
-      const storedRecent =
-        JSON.parse(localStorage.getItem("recentWorkers")) || [];
-      setRecentWorkers(storedRecent);
-      setLoading(false);
-    }, 500);
-    return () => window.clearTimeout(timer);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const backendWorkers = await fetchWorkers();
+        // Merge backend workers and mock workers, preventing duplicate IDs
+        if (backendWorkers && backendWorkers.length > 0) {
+          const merged = new Map();
+          mockWorkers.forEach(w => merged.set(w.id, w));
+          backendWorkers.forEach(w => merged.set(w.id, w));
+          setWorkers(Array.from(merged.values()));
+        } else {
+          setWorkers(mockWorkers);
+        }
+      } catch (err) {
+        console.error("Failed to fetch workers, falling back to mock data", err);
+        setWorkers(mockWorkers);
+      } finally {
+        const storedRecent =
+          JSON.parse(localStorage.getItem("recentWorkers")) || [];
+        setRecentWorkers(storedRecent);
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   // SYNC URL PARAMS

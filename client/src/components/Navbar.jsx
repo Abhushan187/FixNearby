@@ -145,7 +145,6 @@ const Navbar = () => {
                   className="text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:shadow-blue-300/40 transition-all duration-200">
                   Get Started
                 </Link>
-                <LanguageToggle />
               </div>
             )}
           </div>
