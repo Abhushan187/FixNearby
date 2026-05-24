@@ -1,3 +1,4 @@
+import Worker from "../models/Worker.js";
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
@@ -148,4 +149,115 @@ export const updateUserProfile = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
+};
+
+export const registerWorker = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      category,
+      experience,
+      location,
+      contact,
+      bio,
+    } = req.body;
+
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !category ||
+      !experience ||
+      !location ||
+      !contact ||
+      !bio
+    ) {
+      return res.status(400).json({
+        message: "Please fill all fields",
+      });
+    }
+
+    const workerExists = await Worker.findOne({ email });
+
+    if (workerExists) {
+      return res.status(400).json({
+        message: "Worker already exists",
+      });
+    }
+
+    const worker = await Worker.create({
+      name,
+      email,
+      password,
+      category,
+      experience,
+      location,
+      contact,
+      bio,
+      profilePicture: req.file?.path || "",
+    });
+
+    res.status(201).json({
+      success: true,
+      token: generateToken(worker._id),
+      worker: {
+        id: worker._id,
+        name: worker.name,
+        email: worker.email,
+      },
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error",
+    });
+
+  }
+};
+
+export const loginWorker = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const worker = await Worker.findOne({ email });
+
+    if (
+      worker &&
+      (await worker.matchPassword(password))
+    ) {
+      res.status(200).json({
+        success: true,
+        token: generateToken(worker._id),
+        worker: {
+          id: worker._id,
+          name: worker.name,
+          email: worker.email,
+        },
+      });
+
+    } else {
+
+      res.status(401).json({
+        message: "Invalid email or password",
+      });
+
+    }
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error",
+    });
+
+  }
+};
+
+export const getWorkerProfile = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    worker: req.worker,
+  });
 };
