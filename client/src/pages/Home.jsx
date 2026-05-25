@@ -276,7 +276,7 @@ const Home = () => {
 
               {/* Main heading */}
               <h1 className="mt-6 text-5xl font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
-                {t("heroTitle")}
+                {t("hero.headline")}
               </h1>
 
               {/* Subtitle */}
