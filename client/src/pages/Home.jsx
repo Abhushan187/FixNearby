@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import { motion } from 'framer-motion';
 import { useTranslation } from "react-i18next";
 import { useLocation } from "../context/LocationContext";
 import { formatDistance, getDistanceKm } from "../utils/distance";
@@ -76,7 +77,7 @@ const calcRecommendationScore = (worker, distanceKm) => {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 const SkeletonCard = () => (
-  <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+  <div className="card-hover animate-pulse rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
     <div className="flex items-center gap-3">
       <div className="h-14 w-14 rounded-2xl bg-slate-200" />
       <div className="flex-1 space-y-2">
@@ -112,7 +113,7 @@ const RecommendedWorkerCard = ({ worker, rank }) => {
   const WorkerIcon = workerIconMap[worker.profession] || IconBolt;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div className="card-hover group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl" style={{ boxShadow: 'var(--card-shadow)' }}>
       {/* Rank ribbon */}
       {rank <= 3 && (
         <div className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-xs font-extrabold text-white shadow-sm">
@@ -255,46 +256,113 @@ const Home = () => {
     <div className="bg-white">
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="relative pb-[260px] sm:pb-[220px] lg:pb-[180px]">
-            <div className="relative overflow-hidden rounded-[36px] shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
-              <div className="relative h-[320px] sm:h-[380px] lg:h-[420px]">
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-blue-100 blur-3xl opacity-60" />
+          <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-violet-100 blur-3xl opacity-50" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="grid items-center gap-14 lg:grid-cols-2">
+
+            {/* LEFT CONTENT */}
+            <div className="max-w-2xl">
+
+              {/* Trust badge */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm">
+                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                Trusted by 10,000+ homeowners
+              </div>
+
+              {/* Main heading */}
+              <h1 className="mt-6 text-5xl font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
+                {t("hero.headline")}
+              </h1>
+
+              {/* Subtitle */}
+              <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
+                {t("hero.subtext")}
+              </p>
+
+              {/* CTA buttons */}
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                <Link
+                  to="/services"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#0056D2] px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-200 transition-all duration-300 hover:-translate-y-1 hover:bg-[#0047AF]"
+                >
+                  {t("hero.findPro") || "Find a Pro"}
+                </Link>
+
+                <Link
+                  to="/worker/register"
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-8 py-4 text-base font-bold text-slate-800 transition-all duration-300 hover:-translate-y-1 hover:border-slate-400 hover:bg-slate-50"
+                >
+                  {t("hero.becomePro") || "Become a Pro"}
+                </Link>
+              </div>
+
+              {/* Trust stats */}
+              <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {[
+                  { number: "10K+", label: t("stats.customers") },
+                  { number: "500+", label: t("stats.pros") },
+                  { number: "24/7", label: t("stats.support") },
+                  { number: "4.9★", label: t("stats.rating") },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur"
+                  >
+                    <div className="text-2xl font-extrabold text-slate-900">
+                      {item.number}
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-slate-500">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* RIGHT IMAGE SECTION */}
+            <div className="relative mt-12 lg:mt-0" style={{ padding: '24px 20px 28px' }}>
+
+              {/* Main image */}
+              <div className="relative overflow-hidden rounded-[28px] border border-slate-200 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/30 via-slate-900/08 to-transparent z-10" />
                 <img
                   src="/hero-section.png"
                   alt="Home service professional"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="h-[420px] w-full object-cover sm:h-[520px]"
                   loading="eager"
                 />
               </div>
-            </div>
 
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-center">
-              <div className="text-white max-w-3xl px-6">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
-                  {t("heroTitle")}
-                </h1>
-              </div>
-            </div>
-
-            <div className="absolute left-1/2 top-[180px] w-full -translate-x-1/2 px-5 sm:top-[220px] sm:px-8 lg:top-[250px]">
-              <div className="mx-auto w-full max-w-[560px] lg:max-w-[720px] rounded-2xl border border-slate-200 bg-white/95 px-7 py-7 text-center shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur sm:px-10 sm:py-9">
-                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
-                  Trusted by 10,000+ homeowners
+              {/* Floating rating card — top-left, outside the frame */}
+              <div className="absolute -top-5 -left-4 rounded-2xl border border-white/50 bg-white/95 p-4 shadow-xl backdrop-blur-md z-20 animate-float">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 flex-shrink-0">
+                    <IconStar className="h-5 w-5 text-amber-500" filled />
+                  </div>
+                  <div>
+                    <div className="text-base font-extrabold text-slate-900">4.9/5 Rating</div>
+                    <p className="text-xs text-slate-500">Based on reviews</p>
+                  </div>
                 </div>
-                <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                  {t("hero.headline")}
-                </h2>
-                <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
-                  {t("hero.subtext")}
-                </p>
-                <div className="mt-8 flex items-center justify-center gap-3">
-                  <Link to="/services" className="inline-flex items-center justify-center rounded-lg bg-[#0056D2] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0047AF]">
-                    {t("hero.findPro") || "Find a Pro"}
-                  </Link>
-                  <Link to="/worker-register" className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
-                    {t("hero.becomePro") || "Become a Pro"}
-                  </Link>
+              </div>
+
+              {/* Floating quick booking card — bottom-right, outside the frame */}
+              <div className="absolute -bottom-5 -right-4 rounded-2xl border border-white/50 bg-white/95 p-4 shadow-xl backdrop-blur-md z-20 max-w-[220px] animate-float-b">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 flex-shrink-0">
+                    <IconBolt className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-base font-extrabold text-slate-900">Quick Booking</div>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                      Connect with trusted professionals in minutes.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -302,22 +370,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── STATS ───────────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 grid grid-cols-2 gap-6 md:grid-cols-4">
-          {[
-            { number: "10K+", label: "Happy Customers" },
-            { number: "500+", label: "Verified Pros" },
-            { number: "24/7", label: "Support" },
-            { number: "4.9/5", label: "Rating" },
-          ].map((item) => (
-            <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:shadow-xl">
-              <div className="text-4xl font-extrabold text-slate-900">{item.number}</div>
-              <p className="mt-2 font-medium text-slate-500">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ── CLOSEST WORKERS ─────────────────────────────────────────────────── */}
       {(geoLoading || coords || geoError) && (
@@ -474,7 +526,15 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {recommendedWorkers.map((worker, idx) => (
-                <RecommendedWorkerCard key={worker.id} worker={worker} rank={idx + 1} />
+                <motion.div
+                  key={worker.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06, duration: 0.36 }}
+                  className="reveal"
+                >
+                  <RecommendedWorkerCard worker={worker} rank={idx + 1} />
+                </motion.div>
               ))}
             </div>
           )}
@@ -498,13 +558,13 @@ const Home = () => {
       {/* ── HOW IT WORKS ────────────────────────────────────────────────────── */}
       <section id="how-it-works" className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <h2 className="mb-4 text-5xl font-extrabold text-slate-900">How it works</h2>
-          <p className="mb-16 text-lg text-slate-600">Three simple steps to get it done.</p>
+          <h2 className="mb-4 text-5xl font-extrabold text-slate-900">{t("howItWorks.title")}</h2>
+          <p className="mb-16 text-lg text-slate-600">{t("howItWorks.subtext")}</p>
           <div className="grid gap-14 md:grid-cols-3">
             {[
-              { step: "1", title: "Search and Select", desc: "Browse profiles and read reviews.",     IconComp: IconSearch      },
-              { step: "2", title: "Book Directly",      desc: "Schedule appointments instantly.",     IconComp: IconCalendar    },
-              { step: "3", title: "Relax and Enjoy",    desc: "Let the expert handle the job.",       IconComp: IconCheckCircle },
+              { step: "1", title: t("howItWorks.step1"), desc: t("howItWorks.step1desc"), IconComp: IconSearch },
+              { step: "2", title: t("howItWorks.step2"), desc: t("howItWorks.step2desc"), IconComp: IconCalendar },
+              { step: "3", title: t("howItWorks.step3"), desc: t("howItWorks.step3desc"), IconComp: IconCheckCircle },
             ].map((step) => (
               <div key={step.step} className="relative">
                 <div className="mx-auto mb-6 flex h-[92px] w-[92px] items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
@@ -521,16 +581,14 @@ const Home = () => {
       {/* ── CTA ─────────────────────────────────────────────────────────────── */}
       <section className="bg-[#0056D2] py-20 text-center text-white">
         <div className="mx-auto max-w-3xl px-4">
-          <h2 className="mb-4 text-4xl font-extrabold">Need help today?</h2>
-          <p className="mb-8 text-lg text-white/80">
-            Book trusted professionals in minutes and get your home back on track.
-          </p>
+          <h2 className="mb-4 text-4xl font-extrabold">{t("cta.title")}</h2>
+          <p className="mb-8 text-lg text-white/80">{t("cta.subtext")}</p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link to="/services" className="rounded-xl bg-white px-8 py-3 font-semibold text-[#0056D2] shadow-sm transition hover:bg-slate-100">
-              Find a Pro
+              {t("cta.findPro")}
             </Link>
-            <Link to="/worker-register" className="rounded-xl border border-white/40 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
-              Become a Pro
+            <Link to="/worker/register" className="rounded-xl border border-white/40 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
+              {t("cta.becomePro")}
             </Link>
           </div>
         </div>

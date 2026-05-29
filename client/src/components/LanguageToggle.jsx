@@ -4,11 +4,12 @@ const LanguageToggle = () => {
   const { i18n } = useTranslation();
 
   const toggle = () => {
-  const newLang = i18n.language === "hi" ? "en" : "hi";
+    const newLang = i18n.language === "hi" ? "en" : "hi";
 
-  i18n.changeLanguage(newLang);
-  localStorage.setItem("language", newLang);  
-};
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("language", newLang);
+  };
+
   return (
     <button
       onClick={toggle}

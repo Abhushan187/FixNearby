@@ -19,7 +19,7 @@ const mockWorkers = [
     responseTime: "Replies in 20 min",
     outcomeText:
       "Open the full profile to compare pricing, reviews, and booking slots.",
-    mockOffset: { lat: 0.012, lon: 0.008 },
+    mockOffset: { lat: 17.3850, lon: 78.4867 },
     verified: true,
   },
   {
@@ -32,7 +32,7 @@ const mockWorkers = [
     responseTime: "Replies in 15 min",
     outcomeText:
       "See availability first, then confirm a plumbing booking in one flow.",
-    mockOffset: { lat: -0.005, lon: 0.02 },
+    mockOffset: { lat: 17.4435, lon: 78.3772 },
     verified: true,
   },
   {
@@ -45,7 +45,7 @@ const mockWorkers = [
     responseTime: "Replies in 35 min",
     outcomeText:
       "Review past work and request a carpentry visit from the profile page.",
-    mockOffset: { lat: 0.03, lon: -0.015 },
+    mockOffset: { lat: 17.4399, lon: 78.4983 },
     verified: true,
   },
   {
@@ -57,7 +57,7 @@ const mockWorkers = [
     availability: "Next slot tomorrow",
     responseTime: "Replies in 25 min",
     outcomeText: "Check service details and move straight into booking when ready.",
-    mockOffset: { lat: -0.022, lon: -0.01 },
+    mockOffset: { lat: 17.4483, lon: 78.3915 },
     verified: true,
   },
   {
@@ -69,7 +69,7 @@ const mockWorkers = [
     availability: "Emergency slots open",
     responseTime: "Replies in 10 min",
     outcomeText: "View service scope, urgency fit, and book an AC repair visit quickly.",
-    mockOffset: { lat: 0.008, lon: -0.025 },
+    mockOffset: { lat: 17.4126, lon: 78.4052 },
     verified: true,
   },
   {
@@ -82,7 +82,7 @@ const mockWorkers = [
     responseTime: "Replies in 30 min",
     outcomeText:
       "Open the profile to compare rates and schedule a cleaning appointment.",
-    mockOffset: { lat: 0.05, lon: 0.03 },
+    mockOffset: { lat: 17.3616, lon: 78.4747 },
     verified: true,
   },
   {
@@ -95,7 +95,7 @@ const mockWorkers = [
     responseTime: "Replies in 20 min",
     outcomeText:
       "See diagnostic pricing and book a mechanic visit with clearer expectations.",
-    mockOffset: { lat: -0.04, lon: 0.015 },
+    mockOffset: { lat: 17.4948, lon: 78.3996 },
     verified: true,
   },
   {
@@ -108,7 +108,7 @@ const mockWorkers = [
     responseTime: "Replies in 40 min",
     outcomeText:
       "Review service options and book a gardener for regular or one-time visits.",
-    mockOffset: { lat: 0.003, lon: 0.004 },
+    mockOffset: { lat: 17.4239, lon: 78.4738 },
     verified: true,
   },
   {
@@ -121,7 +121,7 @@ const mockWorkers = [
     responseTime: "Replies in 25 min",
     outcomeText:
       "Open the profile to check appliance support and request a repair appointment.",
-    mockOffset: { lat: -0.018, lon: -0.03 },
+    mockOffset: { lat: 17.3724, lon: 78.4378 },
     verified: true,
   },
   {
@@ -134,7 +134,7 @@ const mockWorkers = [
     responseTime: "Replies in 15 min",
     outcomeText:
       "View treatment details and book an inspection without leaving the flow.",
-    mockOffset: { lat: 0.025, lon: -0.005 },
+    mockOffset: { lat: 17.4065, lon: 78.4772 },
     verified: true,
   },
 ];
@@ -184,33 +184,18 @@ const formatDistance = (distance) => {
 };
 
 const Services = () => {
-  // Use the custom search hook
-  const {
-    searchQuery,
-    setSearchQuery,
-    debouncedQuery,
-    filters,
-    updateFilter,
-    resetFilters,
-    hasActiveFilters,
-    searchHistory,
-    addToHistory,
-    clearHistory,
-    removeHistoryItem,
-    favoriteSearches,
-    saveFavoriteSearch,
-    removeFavoriteSearch,
-    loadFavoriteSearch,
-    getShareableUrl,
-  } = useSearch({
-    category: 'All',
-    minPrice: 0,
-    maxPrice: 100,
-    minRating: 0,
-    maxDistance: 50,
-    availability: 'all',
-    sortBy: 'distance',
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
+  );
+  const [categoryFilter, setCategoryFilter] = useState(
+    searchParams.get("category") || "All",
+  );
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "distance");
+  const [urgentFilter, setUrgentFilter] = useState(
+    searchParams.get("urgent") === "true",
+  );
 
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState([]);
@@ -270,32 +255,35 @@ const Services = () => {
     loadData();
   }, []);
 
-  // SYNC URL PARAMS - Removed, now handled by useSearch hook
-
-  // Fetch autocomplete suggestions
+  // SYNC URL PARAMS TO STATE
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchQuery.length >= 2) {
-        try {
-          const results = await getSearchSuggestions(searchQuery);
-          setSuggestions(results.map(r => r.value));
-        } catch (error) {
-          console.error('Error fetching suggestions:', error);
-        }
-      } else {
-        setSuggestions([]);
-      }
-    };
-    
-    fetchSuggestions();
-  }, [searchQuery]);
+    const urlCategory = searchParams.get("category") || "All";
+    const urlUrgent = searchParams.get("urgent") === "true";
+    const urlSearch = searchParams.get("search") || "";
+    const urlSort = searchParams.get("sort") || "distance";
+
+    if (urlCategory !== categoryFilter) setCategoryFilter(urlCategory);
+    if (urlUrgent !== urgentFilter) setUrgentFilter(urlUrgent);
+    if (urlSearch !== searchQuery) setSearchQuery(urlSearch);
+    if (urlSort !== sortBy) setSortBy(urlSort);
+  }, [searchParams]);
+
+  // SYNC STATE TO URL PARAMS
+  useEffect(() => {
+    const params = {};
+    if (searchQuery) params.search = searchQuery;
+    if (categoryFilter !== "All") params.category = categoryFilter;
+    if (sortBy !== "distance") params.sort = sortBy;
+    if (urgentFilter) params.urgent = "true";
+    setSearchParams(params);
+  }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
     let result = workers.map((worker) => {
       if (!coords) return { ...worker, distanceKm: null };
-      const workerLat = coords.latitude + worker.mockOffset.lat;
-      const workerLon = coords.longitude + worker.mockOffset.lon;
+      const workerLat = worker.mockOffset.lat;
+      const workerLon = worker.mockOffset.lon;
       return {
         ...worker,
         distanceKm: getDistanceKm(
@@ -314,7 +302,21 @@ const Services = () => {
         !search ||
         worker.name.toLowerCase().includes(search) ||
         worker.profession.toLowerCase().includes(search);
-      return matchesSearch;
+      const matchesCategory =
+        categoryFilter === "All" || worker.profession === categoryFilter;
+      
+      let matchesUrgent = true;
+      if (urgentFilter) {
+        const avail = (worker.availability || "").toLowerCase();
+        matchesUrgent =
+          avail.includes("available today") ||
+          avail.includes("emergency slots open") ||
+          avail.includes("available this evening") ||
+          avail.includes("next slot this afternoon") ||
+          avail === "available";
+      }
+
+      return matchesSearch && matchesCategory && matchesUrgent;
     });
 
     // Category filter
@@ -362,7 +364,7 @@ const Services = () => {
     }
 
     return result;
-  }, [coords, debouncedQuery, filters, workers]);
+  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
@@ -414,43 +416,135 @@ const Services = () => {
         </p>
       </div>
 
-      {/* SEARCH BAR */}
-      <div className="mb-6">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onSearch={handleSearch}
-          searchHistory={searchHistory}
-          favoriteSearches={favoriteSearches}
-          onRemoveHistory={removeHistoryItem}
-          onClearHistory={clearHistory}
-          onLoadFavorite={loadFavoriteSearch}
-          onSaveFavorite={handleSaveFavorite}
-          onShare={handleShareSearch}
-          suggestions={suggestions}
-          placeholder="Search for services, workers, or categories..."
-        />
+      {/* FILTERS */}
+      <div className="mb-10 space-y-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search services..."
+            className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="distance">📍 Nearest</option>
+            <option value="rating">⭐ Top Rated</option>
+            <option value="price">💰 Lowest Price</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => setUrgentFilter((prev) => !prev)}
+            className={`rounded-xl border px-5 py-3 font-bold shadow-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+              urgentFilter
+                ? "border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+            }`}
+          >
+            <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
+            <span>Urgent Only</span>
+          </button>
+        </div>
+
+        {/* CATEGORY PILLS */}
+        <div className="flex flex-wrap justify-center gap-2">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
+                categoryFilter === cat
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {cat !== "All" && iconMap[cat] && (
+                <span className="mr-2">{iconMap[cat]}</span>
+              )}
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* FILTER TOGGLE BUTTON (Mobile) */}
-      <div className="mb-6 flex items-center justify-between lg:hidden">
-        <button
-          onClick={() => setIsFilterOpen(true)}
-          className="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
-        >
-          <SlidersHorizontal className="h-5 w-5" />
-          Filters
-          {hasActiveFilters && (
-            <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
-              Active
-            </span>
-          )}
-        </button>
-        
-        {hasActiveFilters && (
+      {/* URGENT ACTIVE BANNER */}
+      {urgentFilter && (
+        <div className="mx-auto max-w-3xl mb-10 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm animate-pulse">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-left">
+              <span className="text-3xl">🚨</span>
+              <div>
+                <h3 className="font-bold text-red-800">SOS Emergency Mode Active</h3>
+                <p className="text-sm text-red-600">
+                  Filtering for service providers with immediate availability today or emergency slots open.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setUrgentFilter(false)}
+              className="w-full sm:w-auto rounded-xl bg-red-100 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-200 transition-all duration-200"
+            >
+              Show All
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* RECENTLY VIEWED */}
+      {recentWorkers.length > 0 && (
+        <div className="mb-14">
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Recently Viewed Professionals
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recentWorkers.map((worker) => (
+              <div
+                key={worker.id}
+                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
+              >
+                <div className="mb-4 text-4xl">
+                  {iconMap[worker.profession] || "👷"}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {worker.name}
+                </h3>
+                <p className="mb-3 font-medium text-blue-600">
+                  {worker.profession}
+                </p>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>⭐ {worker.rating}</span>
+                  <span>${worker.price}/hr</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* WORKER CARDS */}
+      {loading ? (
+        <LoadingSpinner />
+      ) : filteredWorkers.length === 0 ? (
+        <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
+          <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
+          <p className="mx-auto mt-2 max-w-md text-gray-500">
+            Try a broader search or reset the selected category.
+          </p>
           <button
-            onClick={handleResetFilters}
-            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setCategoryFilter("All");
+              setSortBy("distance");
+              setUrgentFilter(false);
+            }}
+            className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
           >
             Reset All
           </button>
@@ -535,7 +629,61 @@ const Services = () => {
                       <span>${worker.price}/hr</span>
                     </div>
                   </div>
-                ))}
+
+                  <h3 className="mb-1 text-2xl font-bold text-gray-900">
+                    {worker.name}
+                  </h3>
+                  <p className="mb-4 font-bold text-blue-600">
+                    {worker.profession}
+                  </p>
+
+                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                      {worker.availability}
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                      {worker.responseTime}
+                    </span>
+                  </div>
+
+                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                    <span className="font-bold text-gray-900">
+                      Rating {worker.rating}
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      ${worker.price}/hr
+                    </span>
+                    {worker.distanceKm !== null && (
+                      <span className="font-bold text-gray-900">
+                        {formatDistance(worker.distanceKm)}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm leading-6 text-slate-600">
+                    {worker.outcomeText}
+                  </p>
+                </div>
+
+                <div className="p-8 pt-0 space-y-3">
+                    <a
+                      title="Get Directions"
+                    href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
+                    >
+                      📍 Open in Google Maps
+                    </a>
+
+                    <Link
+                      to={`/worker/${worker.id}`}
+                      onClick={() => handleRecentlyViewed(worker)}
+                      className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
+                    >
+                      View Profile and Book
+                    </Link>
+                  </div>
               </div>
             </div>
           )}
