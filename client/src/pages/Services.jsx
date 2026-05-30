@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { SlidersHorizontal, Share2 } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { SlidersHorizontal } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
@@ -200,11 +200,40 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState([]);
   const [recentWorkers, setRecentWorkers] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [coords, setCoords] = useState(null);
   const [locationStatus, setLocationStatus] = useState("idle");
+
+  // Advanced search features
+  const {
+    searchHistory,
+    addToHistory,
+    clearHistory,
+    removeHistoryItem,
+    favoriteSearches,
+    saveFavoriteSearch,
+    removeFavoriteSearch,
+    loadFavoriteSearch,
+    getShareableUrl,
+  } = useSearch({
+    category: categoryFilter,
+    minPrice: 0,
+    maxPrice: 100,
+    minRating: 0,
+    maxDistance: 50,
+    availability: 'all',
+    sortBy: sortBy,
+  });
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    minPrice: 0,
+    maxPrice: 100,
+    minRating: 0,
+    maxDistance: 50,
+    availability: 'all',
+  });
 
   // GEOLOCATION
   useEffect(() => {
@@ -278,6 +307,25 @@ const Services = () => {
     setSearchParams(params);
   }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
+  // Fetch autocomplete suggestions
+  useEffect(() => {
+    const fetchSuggestionsData = async () => {
+      if (searchQuery.length >= 2) {
+        try {
+          const results = await getSearchSuggestions(searchQuery);
+          setSuggestions(results.map(r => r.value));
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+          setSuggestions([]);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    };
+    
+    fetchSuggestionsData();
+  }, [searchQuery]);
+
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
     let result = workers.map((worker) => {
@@ -295,9 +343,8 @@ const Services = () => {
       };
     });
 
-    // Search filter
     result = result.filter((worker) => {
-      const search = debouncedQuery.trim().toLowerCase();
+      const search = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !search ||
         worker.name.toLowerCase().includes(search) ||
@@ -316,55 +363,30 @@ const Services = () => {
           avail === "available";
       }
 
-      return matchesSearch && matchesCategory && matchesUrgent;
+      // Advanced filters
+      const matchesPrice = worker.price >= advancedFilters.minPrice && worker.price <= advancedFilters.maxPrice;
+      const matchesRating = advancedFilters.minRating === 0 || worker.rating >= advancedFilters.minRating;
+      const matchesDistance = !advancedFilters.maxDistance || !worker.distanceKm || worker.distanceKm <= advancedFilters.maxDistance;
+      
+      let matchesAvailability = true;
+      if (advancedFilters.availability !== 'all') {
+        const avail = (worker.availability || "").toLowerCase();
+        matchesAvailability = avail.includes('available');
+      }
+
+      return matchesSearch && matchesCategory && matchesUrgent && matchesPrice && matchesRating && matchesDistance && matchesAvailability;
     });
 
-    // Category filter
-    if (filters.category !== "All") {
-      result = result.filter(worker => worker.profession === filters.category);
-    }
-
-    // Price filter
-    if (filters.minPrice || filters.maxPrice) {
-      result = result.filter(
-        worker => worker.price >= filters.minPrice && worker.price <= filters.maxPrice
-      );
-    }
-
-    // Rating filter
-    if (filters.minRating) {
-      result = result.filter(worker => worker.rating >= filters.minRating);
-    }
-
-    // Distance filter
-    if (filters.maxDistance && coords) {
-      result = result.filter(
-        worker => worker.distanceKm === null || worker.distanceKm <= filters.maxDistance
-      );
-    }
-
-    // Availability filter
-    if (filters.availability !== 'all') {
-      // This is a simplified filter - in production, match against actual availability data
-      result = result.filter(worker => {
-        if (filters.availability === 'available') {
-          return worker.availability?.toLowerCase().includes('available');
-        }
-        return true;
-      });
-    }
-
-    // Sorting
-    if (filters.sortBy === "rating") {
+    if (sortBy === "rating") {
       result.sort((a, b) => b.rating - a.rating);
-    } else if (filters.sortBy === "price") {
+    } else if (sortBy === "price") {
       result.sort((a, b) => a.price - b.price);
     } else {
       result.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
     }
 
     return result;
-  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers]);
+  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers, advancedFilters]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
@@ -376,11 +398,11 @@ const Services = () => {
   };
 
   const handleSearch = (query) => {
-    addToHistory(query, filters);
+    addToHistory(query, { category: categoryFilter, ...advancedFilters });
   };
 
   const handleSaveFavorite = (name) => {
-    const success = saveFavoriteSearch(name, searchQuery, filters);
+    const success = saveFavoriteSearch(name, searchQuery, { category: categoryFilter, ...advancedFilters });
     if (success) {
       alert('Search saved to favorites!');
     }
@@ -395,10 +417,33 @@ const Services = () => {
     });
   };
 
-  const handleResetFilters = () => {
-    resetFilters();
-    setSearchQuery('');
+  const handleFilterChange = (key, value) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      [key]: value,
+    }));
   };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("All");
+    setSortBy("distance");
+    setUrgentFilter(false);
+    setAdvancedFilters({
+      minPrice: 0,
+      maxPrice: 100,
+      minRating: 0,
+      maxDistance: 50,
+      availability: 'all',
+    });
+  };
+
+  const hasActiveFilters = 
+    advancedFilters.minPrice > 0 ||
+    advancedFilters.maxPrice < 100 ||
+    advancedFilters.minRating > 0 ||
+    (advancedFilters.maxDistance && advancedFilters.maxDistance < 50) ||
+    advancedFilters.availability !== 'all';
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
@@ -418,14 +463,25 @@ const Services = () => {
 
       {/* FILTERS */}
       <div className="mb-10 space-y-6">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
-          <input
-            type="text"
+        {/* SearchBar with Autocomplete */}
+        <div className="mx-auto max-w-3xl">
+          <SearchBar
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search services..."
-            className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            onChange={setSearchQuery}
+            onSearch={handleSearch}
+            searchHistory={searchHistory}
+            favoriteSearches={favoriteSearches}
+            onRemoveHistory={removeHistoryItem}
+            onClearHistory={clearHistory}
+            onLoadFavorite={loadFavoriteSearch}
+            onSaveFavorite={handleSaveFavorite}
+            onShare={handleShareSearch}
+            suggestions={suggestions}
+            placeholder="Search for services, workers, or categories..."
           />
+        </div>
+
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -446,6 +502,19 @@ const Services = () => {
           >
             <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
             <span>Urgent Only</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+            <span>Advanced Filters</span>
+            {hasActiveFilters && (
+              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
+                Active
+              </span>
+            )}
           </button>
         </div>
 
@@ -527,36 +596,16 @@ const Services = () => {
         </div>
       )}
 
-      {/* WORKER CARDS */}
-      {loading ? (
-        <LoadingSpinner />
-      ) : filteredWorkers.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
-          <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
-          <p className="mx-auto mt-2 max-w-md text-gray-500">
-            Try a broader search or reset the selected category.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setCategoryFilter("All");
-              setSortBy("distance");
-              setUrgentFilter(false);
-            }}
-            className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
-          >
-            Reset All
-          </button>
-        )}
-      </div>
-
       {/* MAIN CONTENT WITH SIDEBAR */}
       <div className="flex gap-8">
         {/* FILTER SIDEBAR */}
         <FilterSidebar
-          filters={filters}
-          onFilterChange={updateFilter}
+          filters={{
+            category: categoryFilter,
+            ...advancedFilters,
+            sortBy: sortBy,
+          }}
+          onFilterChange={handleFilterChange}
           onReset={handleResetFilters}
           categories={categories}
           isOpen={isFilterOpen}
@@ -566,128 +615,6 @@ const Services = () => {
 
         {/* MAIN CONTENT */}
         <div className="flex-1">
-          {/* Active Filters Summary */}
-          {hasActiveFilters && (
-            <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-blue-900">Active Filters:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.category !== 'All' && (
-                      <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white">
-                        {filters.category}
-                      </span>
-                    )}
-                    {(filters.minPrice > 0 || filters.maxPrice < 100) && (
-                      <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white">
-                        ${filters.minPrice}-${filters.maxPrice}
-                      </span>
-                    )}
-                    {filters.minRating > 0 && (
-                      <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white">
-                        {filters.minRating}+ ⭐
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={handleResetFilters}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* RECENTLY VIEWED */}
-          {recentWorkers.length > 0 && (
-            <div className="mb-14">
-              <div className="mb-6 flex items-center gap-2">
-                <span className="text-2xl">⭐</span>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Recently Viewed Professionals
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {recentWorkers.map((worker) => (
-                  <div
-                    key={worker.id}
-                    className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
-                  >
-                    <div className="mb-4 text-4xl">
-                      {iconMap[worker.profession] || "👷"}
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      {worker.name}
-                    </h3>
-                    <p className="mb-3 font-medium text-blue-600">
-                      {worker.profession}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>⭐ {worker.rating}</span>
-                      <span>${worker.price}/hr</span>
-                    </div>
-                  </div>
-
-                  <h3 className="mb-1 text-2xl font-bold text-gray-900">
-                    {worker.name}
-                  </h3>
-                  <p className="mb-4 font-bold text-blue-600">
-                    {worker.profession}
-                  </p>
-
-                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                      {worker.availability}
-                    </span>
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                      {worker.responseTime}
-                    </span>
-                  </div>
-
-                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                    <span className="font-bold text-gray-900">
-                      Rating {worker.rating}
-                    </span>
-                    <span className="font-bold text-gray-900">
-                      ${worker.price}/hr
-                    </span>
-                    {worker.distanceKm !== null && (
-                      <span className="font-bold text-gray-900">
-                        {formatDistance(worker.distanceKm)}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-sm leading-6 text-slate-600">
-                    {worker.outcomeText}
-                  </p>
-                </div>
-
-                <div className="p-8 pt-0 space-y-3">
-                    <a
-                      title="Get Directions"
-                    href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
-                    >
-                      📍 Open in Google Maps
-                    </a>
-
-                    <Link
-                      to={`/worker/${worker.id}`}
-                      onClick={() => handleRecentlyViewed(worker)}
-                      className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
-                    >
-                      View Profile and Book
-                    </Link>
-                  </div>
-              </div>
-            </div>
-          )}
-
           {/* WORKER CARDS */}
           {loading ? (
             <LoadingSpinner />
@@ -695,7 +622,7 @@ const Services = () => {
             <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
               <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
               <p className="mx-auto mt-2 max-w-md text-gray-500">
-                Try a broader search or reset the selected filters.
+                Try a broader search or reset the selected category.
               </p>
               <button
                 type="button"
@@ -763,15 +690,25 @@ const Services = () => {
                       </p>
                     </div>
 
-                    <div className="p-8 pt-0">
-                      <Link
-                        to={`/worker/${worker.id}`}
-                        onClick={() => handleRecentlyViewed(worker)}
-                        className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
-                      >
-                        View Profile and Book
-                      </Link>
-                    </div>
+                    <div className="p-8 pt-0 space-y-3">
+                        <a
+                          title="Get Directions"
+                        href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
+                        >
+                          📍 Open in Google Maps
+                        </a>
+
+                        <Link
+                          to={`/worker/${worker.id}`}
+                          onClick={() => handleRecentlyViewed(worker)}
+                          className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
+                        >
+                          View Profile and Book
+                        </Link>
+                      </div>
                   </div>
                 ))}
               </div>
