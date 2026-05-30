@@ -19,7 +19,7 @@ const ForgotPasswordUser = () => {
       const res = await forgotUserPassword(email);
       showToast(res.message);
     } catch (err) {
-      setError(err.message);
+      showToast(err.message, "error");
     } finally {
       setLoading(false);
     }

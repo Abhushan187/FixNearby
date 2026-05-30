@@ -7,9 +7,9 @@ const brevo = new BrevoClient({
 });
 
 
-if (!process.env.BREVO_API_KEY) {
-  throw new Error("BREVO_API_KEY is missing");
-}
+// if (!process.env.BREVO_API_KEY) {
+//   throw new Error("BREVO_API_KEY is missing");
+// }
 
 const sendEmail = async ({ toEmail, subject, htmlContent }) => {
   try {
