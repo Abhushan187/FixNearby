@@ -15,25 +15,25 @@ const stats = [
     label: "Total Bookings",
     value: "12",
     icon: <FaCalendarCheck />,
-    color: "from-indigo-500 to-violet-500",
+    color: "text-indigo-600 bg-indigo-50",
   },
   {
     label: "Active Jobs",
     value: "2",
     icon: <FaClipboardList />,
-    color: "from-amber-500 to-orange-500",
+    color: "text-amber-600 bg-amber-50",
   },
   {
     label: "Completed",
     value: "10",
     icon: <FaCheckCircle />,
-    color: "from-emerald-500 to-green-500",
+    color: "text-emerald-600 bg-emerald-50",
   },
   {
     label: "Rating",
     value: "4.8/5",
     icon: <FaStar />,
-    color: "from-pink-500 to-rose-500",
+    color: "text-pink-600 bg-pink-50",
   },
 ];
 
@@ -84,68 +84,64 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+
         {/* Header */}
-        <div className="mb-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+        <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-900">
+            <h1 className="text-3xl font-bold text-slate-900">
               User Dashboard
             </h1>
-
-            <p className="mt-3 max-w-2xl text-slate-600">
-              Manage bookings, monitor active services, and stay updated with
-              your latest activity.
+            <p className="mt-2 text-slate-500">
+              Manage bookings, monitor services, and track activity.
             </p>
           </div>
 
-          <button className="rounded-2xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:bg-slate-800">
+          <button className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
             Book New Service
           </button>
         </div>
 
-        {/* Hero Card */}
-        <div className="relative mb-10 overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 p-8 text-white shadow-2xl">
-          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
-
-          <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        {/* Hero */}
+        <div className="mb-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-8 text-white shadow-sm">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-indigo-100">
+              <p className="text-xs uppercase tracking-widest text-indigo-100">
                 Welcome Back
               </p>
 
-              <h2 className="mt-3 text-3xl font-extrabold">
+              <h2 className="mt-2 text-2xl font-bold">
                 Your services are running smoothly 🚀
               </h2>
 
-              <p className="mt-3 max-w-xl text-indigo-100">
-                Track ongoing bookings, manage appointments, and review service
-                history from one place.
+              <p className="mt-2 max-w-xl text-indigo-100">
+                Track ongoing bookings, manage appointments, and review history.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md">
+            <div className="rounded-xl bg-white/10 p-5 backdrop-blur">
               <div className="flex items-center gap-3">
-                <FaBell className="text-2xl text-yellow-300" />
+                <FaBell className="text-yellow-300" />
                 <div>
-                  <p className="text-sm text-indigo-100">Upcoming Booking</p>
-                  <h3 className="text-lg font-bold">Home Cleaning</h3>
+                  <p className="text-xs text-indigo-100">Upcoming</p>
+                  <p className="font-semibold">Home Cleaning</p>
                 </div>
               </div>
 
-              <button className="mt-5 flex items-center gap-2 rounded-xl bg-white px-4 py-2 font-semibold text-indigo-700 transition hover:bg-slate-100">
-                View Details
-                <FaArrowRight />
+              <button className="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-slate-100">
+                View Details <FaArrowRight />
               </button>
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-12 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((item) => (
             <div
               key={item.label}
+              className="rounded-2xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl"
     <div className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -173,23 +169,16 @@ const Dashboard = () => {
               key={item.label}
               className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 transition duration-300 group-hover:opacity-10`}
-              ></div>
-
-              <div className="relative z-10 flex items-start justify-between">
+              <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">
-                    {item.label}
-                  </p>
-
-                  <h3 className="mt-3 text-4xl font-black text-slate-900">
+                  <p className="text-sm text-slate-500">{item.label}</p>
+                  <h3 className="mt-2 text-3xl font-bold text-slate-900">
                     {item.value}
                   </h3>
                 </div>
 
                 <div
-                  className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.color} text-2xl text-white shadow-lg`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${item.color}`}
                 >
                   {item.icon}
                 </div>
@@ -200,16 +189,16 @@ const Dashboard = () => {
 
         {/* Main Grid */}
         <div className="grid gap-8 lg:grid-cols-3">
+
           {/* Recent Activity */}
-          <div className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-slate-900">
                   Recent Activity
                 </h2>
-
-                <p className="mt-1 text-slate-500">
-                  Your latest bookings and updates.
+                <p className="text-sm text-slate-500">
+                  Latest bookings and updates
                 </p>
               </div>
 
@@ -218,35 +207,32 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               {recentBookings.map((booking, index) => (
                 <div
                   key={index}
-                  className="flex flex-col gap-5 rounded-2xl border border-slate-200 p-5 transition hover:border-indigo-300 hover:bg-slate-50 md:flex-row md:items-center md:justify-between"
+                  className="flex flex-col gap-4 rounded-xl border border-slate-100 p-5 transition hover:bg-slate-50 md:flex-row md:items-center md:justify-between"
                 >
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">
+                    <h3 className="font-semibold text-slate-900">
                       {booking.title}
                     </h3>
 
                     <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
                       <span className="flex items-center gap-2">
-                        <FaClock />
-                        {booking.date}
+                        <FaClock /> {booking.date}
                       </span>
-
                       <span className="flex items-center gap-2">
-                        <FaMapMarkerAlt />
-                        {booking.location}
+                        <FaMapMarkerAlt /> {booking.location}
                       </span>
                     </div>
                   </div>
 
                   <span
-                    className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
                       booking.status === "Completed"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-amber-50 text-amber-600"
                     }`}
                   >
                     {booking.status}
@@ -257,16 +243,15 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-900">
+          <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-900">
               Quick Actions
             </h2>
-
-            <p className="mt-1 text-slate-500">
-              Access important actions instantly.
+            <p className="text-sm text-slate-500">
+              Access important actions instantly
             </p>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-3">
               {[
                 "Book a Service",
                 "Track Booking",
@@ -275,7 +260,7 @@ const Dashboard = () => {
               ].map((action) => (
                 <button
                   key={action}
-                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 font-semibold text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                  className="flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
                 >
                   {action}
                   <FaArrowRight />
@@ -283,18 +268,17 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {/* Empty State */}
-            <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-2xl text-indigo-600">
+            {/* Empty state (softened) */}
+            <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
                 <FaClipboardList />
               </div>
 
-              <h3 className="mt-4 text-lg font-bold text-slate-900">
+              <h3 className="mt-3 font-semibold text-slate-900">
                 No Pending Tasks
               </h3>
-
-              <p className="mt-2 text-sm text-slate-500">
-                You're all caught up. New service updates will appear here.
+              <p className="mt-1 text-sm text-slate-500">
+                You’re all caught up
               </p>
             </div>
           </div>
@@ -360,6 +344,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

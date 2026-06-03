@@ -8,6 +8,7 @@ import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
 
+const mockWorkers = [/* unchanged - keep your full list here */];
 const mockWorkers = [
   {
     id: 1,
@@ -167,43 +168,43 @@ const iconMap = {
 };
 
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
-  const radiusKm = 6371;
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) ** 2;
-  return radiusKm * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 };
 
-const formatDistance = (distance) => {
-  if (distance < 1) return `${Math.round(distance * 1000)} m`;
-  return `${distance.toFixed(1)} km`;
-};
+const formatDistance = (d) =>
+  d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
 
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [searchQuery, setSearchQuery] = useState(
-    searchParams.get("search") || "",
+    searchParams.get("search") || ""
   );
   const [categoryFilter, setCategoryFilter] = useState(
-    searchParams.get("category") || "All",
+    searchParams.get("category") || "All"
   );
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "distance");
   const [urgentFilter, setUrgentFilter] = useState(
     searchParams.get("urgent") === "true",
   );
 
-  const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [coords, setCoords] = useState(null);
+
   const [recentWorkers, setRecentWorkers] = useState([]);
 
-  const [coords, setCoords] = useState(null);
-  const [locationStatus, setLocationStatus] = useState("idle");
-
+  /* GEOLOCATION */
   // Advanced search features
   const {
     searchHistory,
@@ -237,26 +238,17 @@ const Services = () => {
 
   // GEOLOCATION
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocationStatus("unsupported");
-      return;
-    }
-    setLocationStatus("loading");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) =>
         setCoords({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setLocationStatus("success");
-      },
-      () => {
-        setLocationStatus("denied");
-      },
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }),
+      () => setCoords(null)
     );
   }, []);
 
-  // LOAD WORKERS
+  /* LOAD DATA */
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -303,10 +295,14 @@ const Services = () => {
     if (searchQuery) params.search = searchQuery;
     if (categoryFilter !== "All") params.category = categoryFilter;
     if (sortBy !== "distance") params.sort = sortBy;
+
+    setSearchParams(params);
+  }, [searchQuery, categoryFilter, sortBy, setSearchParams]);
     if (urgentFilter) params.urgent = "true";
     setSearchParams(params);
   }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
+  /* FILTER + SORT */
   // Fetch autocomplete suggestions
   useEffect(() => {
     const fetchSuggestionsData = async () => {
@@ -328,21 +324,33 @@ const Services = () => {
 
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
+    let result = workers.map((w) => {
+      if (!coords) return { ...w, distanceKm: null };
+
+      const lat = coords.latitude + w.mockOffset.lat;
+      const lon = coords.longitude + w.mockOffset.lon;
+
     let result = workers.map((worker) => {
       if (!coords) return { ...worker, distanceKm: null };
       const workerLat = worker.mockOffset.lat;
       const workerLon = worker.mockOffset.lon;
       return {
-        ...worker,
-        distanceKm: getDistanceKm(
-          coords.latitude,
-          coords.longitude,
-          workerLat,
-          workerLon,
-        ),
+        ...w,
+        distanceKm: getDistanceKm(coords.latitude, coords.longitude, lat, lon),
       };
     });
 
+    result = result.filter((w) => {
+      const s = searchQuery.toLowerCase();
+      const matchSearch =
+        !s ||
+        w.name.toLowerCase().includes(s) ||
+        w.profession.toLowerCase().includes(s);
+
+      const matchCategory =
+        categoryFilter === "All" || w.profession === categoryFilter;
+
+      return matchSearch && matchCategory;
     result = result.filter((worker) => {
       const search = searchQuery.trim().toLowerCase();
       const matchesSearch =
@@ -377,20 +385,16 @@ const Services = () => {
       return matchesSearch && matchesCategory && matchesUrgent && matchesPrice && matchesRating && matchesDistance && matchesAvailability;
     });
 
-    if (sortBy === "rating") {
-      result.sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === "price") {
-      result.sort((a, b) => a.price - b.price);
-    } else {
-      result.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
-    }
+    if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
+    else if (sortBy === "price") result.sort((a, b) => a.price - b.price);
+    else result.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
 
     return result;
   }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers, advancedFilters]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
-    stored = stored.filter((item) => item.id !== worker.id);
+    stored = stored.filter((i) => i.id !== worker.id);
     stored.unshift(worker);
     stored = stored.slice(0, 5);
     localStorage.setItem("recentWorkers", JSON.stringify(stored));
@@ -447,20 +451,38 @@ const Services = () => {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
+
       {/* HEADER */}
       <div className="mb-10 text-center">
         <h1 className="text-4xl font-bold text-gray-900">
           Find Reliable Services Near You
         </h1>
         <p className="mt-2 text-gray-500">
-          {locationStatus === "success"
+          {coords
             ? "Showing nearby professionals"
-            : locationStatus === "loading"
-              ? "Detecting your location..."
-              : "Enable location for better distance results"}
+            : "Enable location for better results"}
         </p>
       </div>
 
+      {/* SEARCH + SORT */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+        <input
+          className="w-full rounded-xl border px-4 py-3"
+          placeholder="Search services..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        <select
+          className="rounded-xl border px-4 py-3"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="distance">Nearest</option>
+          <option value="rating">Top Rated</option>
+          <option value="price">Lowest Price</option>
+        </select>
+      </div>
       {/* FILTERS */}
       <div className="mb-10 space-y-6">
         {/* SearchBar with Autocomplete */}
@@ -518,17 +540,19 @@ const Services = () => {
           </button>
         </div>
 
-        {/* CATEGORY PILLS */}
-        <div className="flex flex-wrap justify-center gap-2">
+      {/* CATEGORY CHIPS (FULL FIX) */}
+      <div className="mb-10">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-1 py-2 scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
-                categoryFilter === cat
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600"
-              }`}
+              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95
+                ${
+                  categoryFilter === cat
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white border text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                }`}
             >
               {cat !== "All" && iconMap[cat] && (
                 <span className="mr-2">{iconMap[cat]}</span>
@@ -539,6 +563,25 @@ const Services = () => {
         </div>
       </div>
 
+      {/* LOADING */}
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredWorkers.map((w) => (
+            <div
+              key={w.id}
+              className="rounded-2xl border bg-white p-6 shadow-sm"
+            >
+              <div className="text-3xl mb-2">
+                {iconMap[w.profession] || "👷"}
+              </div>
+
+              <h3 className="text-xl font-bold">{w.name}</h3>
+              <p className="text-blue-600">{w.profession}</p>
+
+              <div className="mt-2 text-sm text-gray-600">
+                ⭐ {w.rating} • ${w.price}/hr
       {/* URGENT ACTIVE BANNER */}
       {urgentFilter && (
         <div className="mx-auto max-w-3xl mb-10 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm animate-pulse">
@@ -712,6 +755,24 @@ const Services = () => {
                   </div>
                 ))}
               </div>
+
+              {w.distanceKm !== null && (
+                <div className="text-sm text-gray-500">
+                  {formatDistance(w.distanceKm)}
+                </div>
+              )}
+
+              <Link
+                to={`/worker/${w.id}`}
+                onClick={() => handleRecentlyViewed(w)}
+                className="mt-4 block rounded-lg bg-black py-2 text-center text-white"
+              >
+                View Profile
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
             </>
           )}
         </div>
