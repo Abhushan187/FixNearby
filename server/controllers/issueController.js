@@ -2,6 +2,7 @@ import Issue from '../models/Issue.js';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getOrSetCache, deleteCachePattern } from '../config/redis.js';
 
 // In-memory fallback store when DB is not connected
 const inMemoryIssues = [];
@@ -14,8 +15,7 @@ export const getNearbyIssues = async (req, res) => {
     const lng = parseFloat(req.query.lng);
     const category = req.query.category;
     const radiusKm = parseFloat(req.query.radius) || 1;
-    // Added zoom support to trigger clustering
-    const zoom = parseInt(req.query.zoom) || 10; 
+    const zoom = parseInt(req.query.zoom) || 10;
 
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       return res.status(400).json({ message: 'Invalid coordinates' });
@@ -24,46 +24,49 @@ export const getNearbyIssues = async (req, res) => {
     const maxDistanceMeters = Math.max(10, Math.min(50000, radiusKm * 1000));
 
     if (isDbConnected()) {
-      // LEVEL 3: SERVER-SIDE CLUSTERING
-      // If zoom is low (< 12), we group issues into buckets to reduce client load
-      if (zoom < 12) {
-        const clusters = await Issue.aggregate([
-          {
-            $geoNear: {
-              near: { type: 'Point', coordinates: [lng, lat] },
-              distanceField: 'dist.calculated',
-              maxDistance: maxDistanceMeters,
-              spherical: true
-            }
-          },
-          { $match: { status: { $nin: ['resolved', 'closed'] } } },
-          {
-            $group: {
-              _id: {
-                latBucket: { $round: ["$latitude", 1] }, 
-                lngBucket: { $round: ["$longitude", 1] }
-              },
-              count: { $sum: 1 },
-              latestIssue: { $first: "$$ROOT" }
-            }
-          }
-        ]);
-        return res.status(200).json({ type: 'cluster', data: clusters });
-      }
+      const cacheKey = `nearby:${lat.toFixed(4)}:${lng.toFixed(4)}:${category || 'all'}:${radiusKm}:${zoom}`;
 
-      // Standard granular fetch for high zoom levels
-      const issues = await Issue.find({
-        category,
-        status: { $nin: ['resolved', 'closed'] },
-        location: {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lng, lat] },
-            $maxDistance: maxDistanceMeters
-          }
+      const data = await getOrSetCache(cacheKey, 300, async () => {
+        if (zoom < 12) {
+          const clusters = await Issue.aggregate([
+            {
+              $geoNear: {
+                near: { type: 'Point', coordinates: [lng, lat] },
+                distanceField: 'dist.calculated',
+                maxDistance: maxDistanceMeters,
+                spherical: true
+              }
+            },
+            { $match: { status: { $nin: ['resolved', 'closed'] } } },
+            {
+              $group: {
+                _id: {
+                  latBucket: { $round: ["$latitude", 1] },
+                  lngBucket: { $round: ["$longitude", 1] }
+                },
+                count: { $sum: 1 },
+                latestIssue: { $first: "$$ROOT" }
+              }
+            }
+          ]);
+          return { type: 'cluster', data: clusters };
         }
-      }).limit(100);
 
-      return res.status(200).json({ type: 'list', data: issues });
+        const issues = await Issue.find({
+          category,
+          status: { $nin: ['resolved', 'closed'] },
+          location: {
+            $near: {
+              $geometry: { type: 'Point', coordinates: [lng, lat] },
+              $maxDistance: maxDistanceMeters
+            }
+          }
+        }).limit(100);
+
+        return { type: 'list', data: issues };
+      });
+
+      return res.status(200).json(data);
     }
 
     // Fallback logic (unchanged)
@@ -103,6 +106,11 @@ export const createIssue = async (req, res) => {
         thumbnailUrl,
         reportedBy: req.user ? req.user.id : null
       });
+
+      deleteCachePattern(`nearby:*:*:${category}:*`).catch((err) => {
+        console.error('Cache invalidation error on create:', err.message);
+      });
+
       return res.status(201).json(issue);
     }
 
@@ -139,10 +147,6 @@ export const upvoteIssue = async (req, res) => {
     }
 
     if (isDbConnected()) {
-      // Use an atomic update that only increments upvotes and appends the
-      // user ID when the user has not already voted ($addToSet prevents
-      // duplicates). findByIdAndUpdate with a condition on upvotedBy ensures
-      // atomicity — no separate read-modify-write race is possible.
       const issue = await Issue.findOneAndUpdate(
         { _id: id, upvotedBy: { $ne: userId } },
         {
@@ -153,7 +157,6 @@ export const upvoteIssue = async (req, res) => {
       );
 
       if (!issue) {
-        // Either the issue does not exist or the user has already upvoted.
         const exists = await Issue.exists({ _id: id });
         if (!exists) return res.status(404).json({ message: 'Issue not found' });
         return res.status(409).json({ message: 'You have already upvoted this issue' });
@@ -162,7 +165,6 @@ export const upvoteIssue = async (req, res) => {
       return res.status(200).json(issue);
     }
 
-    // in-memory fallback (no persistent deduplication available)
     const issue = inMemoryIssues.find((it) => String(it.id) === String(id));
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
     if (!issue.upvotedBy) issue.upvotedBy = [];
@@ -204,14 +206,17 @@ export const updateIssueStatus = async (req, res) => {
         const issue = await Issue.findById(id);
         if (!issue) return res.status(404).json({ message: "Issue not found" });
 
-        // Logic: Calculate ETA if moving to in-progress
         if (status === 'in-progress' && issue.status !== 'in-progress') {
-            issue.estimatedArrival = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+            issue.estimatedArrival = new Date(Date.now() + 2 * 60 * 60 * 1000);
         }
 
         issue.status = status;
         issue.statusHistory.push({ status, updatedAt: new Date(), note });
         await issue.save();
+
+        deleteCachePattern(`nearby:*:*:${issue.category}:*`).catch((err) => {
+          console.error('Cache invalidation error on status update:', err.message);
+        });
 
         res.status(200).json(issue);
     } catch (error) {

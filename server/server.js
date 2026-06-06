@@ -9,6 +9,7 @@ import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
+import { disconnectRedis } from './config/redis.js';
 
 dotenv.config();
 
@@ -86,8 +87,21 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal) => {
+  console.log(`${signal} received. Closing connections...`);
+  await disconnectRedis();
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 
