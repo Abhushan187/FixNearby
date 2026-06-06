@@ -23,7 +23,7 @@ import {
 
 import upload from "../middleware/uploadMiddleware.js";
 
-import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter } from "../middleware/authRateLimiter.js";
+import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter, passwordResetLimiter } from "../middleware/authRateLimiter.js";
 
 const router = express.Router();
 
@@ -71,21 +71,25 @@ router.get(
 
 router.post(
   "/forgot-password",
+  passwordResetLimiter,
   forgotUserPassword
 );
 
 router.put(
   "/reset-password/:token",
+  passwordResetLimiter,
   resetUserPassword
 );
 
 router.post(
   "/worker/forgot-password",
+  passwordResetLimiter,
   forgotWorkerPassword
 );
 
 router.put(
   "/worker/reset-password/:token",
+  passwordResetLimiter,
   resetWorkerPassword
 );
 

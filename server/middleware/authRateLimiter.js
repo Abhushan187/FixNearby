@@ -55,3 +55,14 @@ export const workerRegisterLimiter = rateLimit({
     "Too many worker registration attempts. Please try again after 1 hour."
   ),
 });
+
+// Password reset routes - 3 requests per hour (high-risk endpoint)
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler(
+    "Too many password reset attempts. Please try again after 1 hour."
+  ),
+});

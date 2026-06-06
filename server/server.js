@@ -26,12 +26,7 @@ const app = express();
 // Security Middleware
 app.use(helmet());
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later."
-});
-app.use(limiter);
+import { apiRateLimiter } from './middleware/apiRateLimiter.js';
 
 // CORS configuration
 app.use(cors({
@@ -54,9 +49,9 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/workers', workerRoutes);
-app.use('/api/issues', issueRoutes);
-app.use('/api/search', searchRoutes);
+app.use('/api/workers', apiRateLimiter, workerRoutes);
+app.use('/api/issues', apiRateLimiter, issueRoutes);
+app.use('/api/search', apiRateLimiter, searchRoutes);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
