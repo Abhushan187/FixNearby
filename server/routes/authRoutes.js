@@ -24,14 +24,16 @@ import {
 import upload from "../middleware/uploadMiddleware.js";
 
 import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter, passwordResetLimiter } from "../middleware/authRateLimiter.js";
+import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter } from "../middleware/authRateLimiter.js";
+import { validateRegistration, validateLogin } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
 {/* USER AUTH ROUTES*/}
 
-router.post("/register", userRegisterLimiter, registerUser);
+router.post("/register", userRegisterLimiter, validateRegistration, registerUser);
 
-router.post("/login", userLoginLimiter, loginUser);
+router.post("/login", userLoginLimiter, validateLogin, loginUser);
 
 router.get(
   "/profile",
@@ -52,6 +54,7 @@ router.post(
   "/worker/register",
   workerRegisterLimiter,
   upload.single("profilePicture"),
+  validateRegistration,
   registerWorker
 );
 
@@ -59,6 +62,7 @@ router.post(
 router.post(
   "/worker/login",
   workerLoginLimiter,
+  validateLogin,
   loginWorker
 );
 
