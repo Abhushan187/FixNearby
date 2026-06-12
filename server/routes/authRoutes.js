@@ -13,7 +13,8 @@ import {
   forgotUserPassword,
   resetUserPassword,
   forgotWorkerPassword,
-  resetWorkerPassword
+  resetWorkerPassword,
+  logoutUser
 } from "../controllers/authController.js";
 
 import {
@@ -24,6 +25,7 @@ import {
 import upload from "../middleware/uploadMiddleware.js";
 
 import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter, passwordResetLimiter } from "../middleware/authRateLimiter.js";
+
 import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter } from "../middleware/authRateLimiter.js";
 import { validateRegistration, validateLogin } from "../middleware/validationMiddleware.js";
 
@@ -95,6 +97,11 @@ router.put(
   "/worker/reset-password/:token",
   passwordResetLimiter,
   resetWorkerPassword
+);
+
+router.post(
+  "/logout",
+  logoutUser
 );
 
 export default router;

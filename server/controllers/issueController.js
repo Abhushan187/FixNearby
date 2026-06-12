@@ -51,7 +51,6 @@ export const getNearbyIssues = async (req, res) => {
         return res.status(200).json({ type: 'cluster', data: clusters });
       }
 
-      // Standard granular fetch for high zoom levels
       const issues = await Issue.find({
         category,
         status: { $nin: ['resolved', 'closed'] },
@@ -61,7 +60,7 @@ export const getNearbyIssues = async (req, res) => {
             $maxDistance: maxDistanceMeters
           }
         }
-      }).limit(100);
+      }).select("title description category location latitude longitude status upvotes reportedAt").limit(100);
 
       return res.status(200).json({ type: 'list', data: issues });
     }
@@ -201,17 +200,31 @@ export const updateIssueStatus = async (req, res) => {
         const { id } = req.params;
         const { status, note } = req.body;
         
-        const issue = await Issue.findById(id);
-        if (!issue) return res.status(404).json({ message: "Issue not found" });
+        const currentIssue = await Issue.findById(id);
+        if (!currentIssue) return res.status(404).json({ message: "Issue not found" });
 
-        // Logic: Calculate ETA if moving to in-progress
-        if (status === 'in-progress' && issue.status !== 'in-progress') {
-            issue.estimatedArrival = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        // Atomic check: Transitioning to 'in-progress' must start from 'open' status
+        const query = { _id: id };
+        if (status === 'in-progress') {
+            query.status = 'open';
         }
 
-        issue.status = status;
-        issue.statusHistory.push({ status, updatedAt: new Date(), note });
-        await issue.save();
+        const update = {
+            $set: { status },
+            $push: { statusHistory: { status, updatedAt: new Date(), note } }
+        };
+
+        if (status === 'in-progress') {
+            update.$set.estimatedArrival = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        }
+
+        const issue = await Issue.findOneAndUpdate(query, update, { new: true });
+        
+        if (!issue) {
+            return res.status(409).json({ 
+                message: "Status conflict: The issue has already been claimed or modified by another worker." 
+            });
+        }
 
         res.status(200).json(issue);
     } catch (error) {

@@ -562,3 +562,32 @@ export const resetWorkerPassword = async (req, res) => {
     });
   }
 };
+
+import Blacklist from "../models/Blacklist.js";
+
+export const logoutUser = async (req, res) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (!token) {
+      return res.status(400).json({ success: false, message: "No token provided" });
+    }
+    
+    const decoded = jwt.decode(token);
+    const expiresAt = decoded && decoded.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await Blacklist.create({ token, expiresAt });
+    
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error during logout"
+    });
+  }
+};
